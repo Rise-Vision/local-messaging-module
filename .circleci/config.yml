@@ -28,6 +28,7 @@ workflows:
   version: 2
   workflow1:
     jobs:
+      - "setup_npm_deps"
       - "test_unit":
           requires:
             - setup_npm_deps
