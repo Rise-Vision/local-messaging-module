@@ -6,5 +6,4 @@ build/
 coverage/
 test/test-results.xml
 *.zip
-/version.txt
 npm-debug.log
