@@ -1,7 +1,7 @@
 version: 2
 
 jobs:
-  "setup_npm_deps":
+  "test_unit":
     docker: &DOCKERIMAGE
       - image: jenkinsrise/cci-v2-launcher-electron:0.0.5
     steps:
@@ -13,22 +13,56 @@ jobs:
           key: node-cache-{{ checksum "package.json" }}
           paths:
             - ./node_modules
-
-  "test_unit":
-    docker: *DOCKERIMAGE
-    steps:
-      - checkout
-      - restore_cache:
-          key: node-cache-{{ checksum "package.json" }}
       - run:
           command: npm run test
           no_output_timeout: 1m
+
+  "build":
+      docker: *DOCKERIMAGE
+      steps:
+        - checkout
+        - restore_cache:
+            key: node-cache-{{ checksum "package.json" }}
+        - run: npm run build
+        - save_cache:
+            key: node-cache-{{ checksum "package.json" }}
+            paths:
+              - ./node_modules
+        - persist_to_workspace:
+            root: .
+            paths:
+              - build
+
+  "stage":
+      docker: *DOCKERIMAGE
+      steps:
+        - checkout
+        - attach_workspace:
+            at: .
+        - run: ./stage.sh
+        - persist_to_workspace:
+            root: .
+            paths:
+              - version
 
 workflows:
   version: 2
   workflow1:
     jobs:
-      - "setup_npm_deps"
-      - "test_unit":
+      - "test_unit"
+      - "build":
+          filters:
+            branches:
+              only:
+                - master
+                - /^stage\/.*/
+                - /^staging\/.*/
+      - "stage":
           requires:
-            - setup_npm_deps
+            - build
+          filters:
+            branches:
+              only:
+                - master
+                - /^stage\/.*/
+                - /^staging\/.*/
