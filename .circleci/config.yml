@@ -53,6 +53,16 @@ jobs:
             at: .
         - run: ./stage.sh
 
+  "deploy":
+    docker: *DOCKERIMAGE
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - restore_cache:
+          key: node-cache-{{ checksum "package.json" }}
+      - run: ./deploy.sh
+
 workflows:
   version: 2
   workflow1:
@@ -61,6 +71,7 @@ workflows:
       - "version"
       - "build":
           requires:
+            - test_unit
             - version
           filters:
             branches:
@@ -77,3 +88,11 @@ workflows:
                 - master
                 - /^stage\/.*/
                 - /^staging\/.*/
+      - "deploy":
+          requires:
+            - build
+          filters:
+            branches:
+              only:
+                - master
+
