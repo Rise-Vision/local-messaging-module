@@ -4,7 +4,6 @@ MODULENAME="local-messaging"
 VERSION=$(cat version)
 echo "deploying $VERSION"
 
-gsutil -m cp -p gs://install-versions.risevision.com/staging/$MODULENAME/$VERSION/*
 mkdir -p manifests
 gsutil cp gs://install-versions.risevision.com/display-modules-*.json manifests
 
