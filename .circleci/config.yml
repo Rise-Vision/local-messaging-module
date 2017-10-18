@@ -90,7 +90,7 @@ workflows:
                 - /^staging\/.*/
       - "deploy":
           requires:
-            - build
+            - stage
           filters:
             branches:
               only:
