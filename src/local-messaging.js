@@ -10,7 +10,7 @@ function destroy() {
 }
 
 function initPrimus() {
-  primus = new Primus( server, { transformer: "uws" } );
+  primus = new Primus( server, { transformer: "websockets" } );
 
   primus.on( "connection", ( spk ) => {
     spark = spk;
@@ -24,8 +24,7 @@ function initPrimus() {
 
 function initIPC() {
   ipc.serve( () => {
-
-    ipc.server.on( "message", (data) => {
+    ipc.server.on("message", (data) => {
       // data.through indicates to send data over the socket
       if (data.through === "ws"){
         if (spark) {
