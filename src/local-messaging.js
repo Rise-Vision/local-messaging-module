@@ -50,7 +50,7 @@ function initIPC() {
 }
 
 function start() {
-  server.listen(8080, () => {
+  server.listen(8080, "localhost", () => {
     console.log("HTTP server is listening on port 8080");
   });
 
