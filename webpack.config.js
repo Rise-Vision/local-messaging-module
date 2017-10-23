@@ -16,7 +16,10 @@ module.exports = env =>  {
       filename: "index.js"
     },
     plugins: [
-      new CopyWebpackPlugin([{from: "./build-temp/node_modules", to: 'node_modules'}]),
+      new CopyWebpackPlugin([
+        {from: "./build-temp/node_modules", to: "node_modules"},
+        {from: "./build-temp/package.json"}
+      ]),
       new MinifyPlugin(),
       new ZipPlugin({
         path: path.join(__dirname, "build"),
