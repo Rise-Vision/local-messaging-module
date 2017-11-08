@@ -1,25 +1,47 @@
-const Primus = require("primus"),
-  http = require("http"),
-  server = http.createServer( ()=>{} );
+const Primus = require("primus");
+const http = require("http");
+const server = http.createServer( ()=>{} );
+const commonConfig = require("common-display-module");
+const msEndpoint = `https://services.risevision.com/messaging/primus/`;
 
-let ipc, primus, spark;
+let ipc, ms, localWS, spark;
 
 function destroy() {
-  if (primus) { primus.destroy(); }
+  if (localWS) { localWS.destroy(); }
+  if (ms) { ms.destroy(); }
   if (ipc) { ipc.server.stop(); }
 }
 
 function initPrimus() {
-  primus = new Primus( server, { transformer: "websockets" } );
+  const {displayId} = commonConfig.getDisplaySettingsSync();
+  const machineId = commonConfig.getMachineId();
+  const msUrl = `${msEndpoint}?displayId=${displayId}&machineId=${machineId}`;
 
-  primus.on( "connection", ( spk ) => {
+  localWS = new Primus( server, { transformer: "websockets" } );
+
+  localWS.on( "connection", ( spk ) => {
     spark = spk;
     spark.write("Local Messaging Connection");
   } );
 
-  primus.on( "destroy", () => {
-    console.log('primus instance has been destroyed');
+  localWS.on( "destroy", () => {
+    console.log('localWS instance has been destroyed');
   });
+
+  ms = new (Primus.createSocket({
+    transformer: "websockets",
+    pathname: "messaging/primus/"
+  }))(msUrl, {
+    reconnect: {
+      max: 1800000,
+      min: 5000,
+      retries: Infinity
+    }
+  });
+
+  ms.on("data", data=>ipc.server.broadcast("message", data));
+  ms.on("error", console.log.bind(console));
+  ms.on("open", console.log.bind(console, "MS connection opened")); 
 }
 
 function initIPC() {
@@ -31,6 +53,12 @@ function initIPC() {
           spark.write(data);
         } else {
           console.log("No clients connected to WS");
+        }
+      } else if (data.through === "ms") {
+        if (ms) {
+          ms.write(data);
+        } else {
+          console.log("MS not connected");
         }
       } else {
         // broadcast to all client sockets
@@ -69,5 +97,6 @@ module.exports = {
     initIPC();
     start();
   },
-  destroy
+  destroy,
+  getMS() {return ms;}
 };
