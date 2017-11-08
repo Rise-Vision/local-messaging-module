@@ -30,5 +30,5 @@ module.exports = env =>  {
         outputFilename: "local-messaging",
       })
     ]
-  }
+  };
 };

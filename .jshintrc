@@ -24,6 +24,8 @@
     "XMLHttpRequest": false,
     "it": false,
     "afterEach": false,
-    "beforeEach": false
+    "after": false,
+    "beforeEach": false,
+    "before": false
   }
 }
