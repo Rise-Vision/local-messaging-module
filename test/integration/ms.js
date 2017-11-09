@@ -24,7 +24,7 @@ describe("Local Messaging : Integration", ()=>{
 
       return new Promise(res=>ms.on("open", res))
       .then(()=>{
-        ms.write({msg: "watch"});
+        ms.write({topic: "watch"});
         return new Promise(res=>ms.on("data", data=>{console.log(data);res();}));
       });
     });
