@@ -41,7 +41,10 @@ function initPrimus() {
 
   ms.on("data", data=>ipc.server.broadcast("message", data));
   ms.on("error", console.log.bind(console));
-  ms.on("open", console.log.bind(console, "MS connection opened")); 
+  return new Promise(res=>ms.on("open", ()=>{
+    console.log("MS connection opened");
+    res();
+  }));
 }
 
 function initIPC() {
@@ -93,9 +96,9 @@ module.exports = {
   init(_ipc) {
     ipc = _ipc;
 
-    initPrimus();
     initIPC();
     start();
+    return initPrimus();
   },
   destroy,
   getMS() {return ms;}
