@@ -5,7 +5,7 @@ const path = require("path");
 const UnzipsfxPlugin = require("unzipsfx-webpack-plugin");
 const ZipPlugin = require("zip-webpack-plugin");
 
-module.exports = env =>  {
+module.exports = env => {
 
   return {
     entry: "./src/index.js",
@@ -23,11 +23,11 @@ module.exports = env =>  {
       new MinifyPlugin(),
       new ZipPlugin({
         path: path.join(__dirname, "build"),
-        filename: "local-messaging",
+        filename: "local-messaging"
       }),
       new UnzipsfxPlugin({
         outputPath: path.join(__dirname, "build"),
-        outputFilename: "local-messaging",
+        outputFilename: "local-messaging"
       })
     ]
   };

@@ -1,17 +1,18 @@
 const Primus = require("primus");
 const http = require("http");
-const server = http.createServer( ()=>{} );
+const server = http.createServer(()=>{});
 const commonConfig = require("common-display-module");
 const msEndpoint = `https://services.risevision.com/messaging/primus/`;
 
-let clients = new Set();
+const clients = new Set();
+const port = 8080;
 
-let ipc, ms, localWS, spark;
+let ipc, localWS, ms, spark;
 
 function destroy() {
-  if (localWS) { localWS.destroy(); }
-  if (ms) { ms.destroy(); }
-  if (ipc) { ipc.server.stop(); }
+  if (localWS) {localWS.destroy();}
+  if (ms) {ms.destroy();}
+  if (ipc) {ipc.server.stop();}
 }
 
 function initPrimus() {
@@ -19,14 +20,14 @@ function initPrimus() {
   const machineId = commonConfig.getMachineId();
   const msUrl = `${msEndpoint}?displayId=${displayId}&machineId=${machineId}`;
 
-  localWS = new Primus( server, { transformer: "websockets" } );
+  localWS = new Primus(server, {transformer: "websockets"});
 
-  localWS.on( "connection", ( spk ) => {
+  localWS.on("connection", (spk) => {
     spark = spk;
     spark.write("Local Messaging Connection");
-  } );
+  });
 
-  localWS.on( "destroy", () => {
+  localWS.on("destroy", () => {
     console.log('localWS instance has been destroyed');
   });
 
@@ -50,10 +51,10 @@ function initPrimus() {
 }
 
 function initIPC() {
-  ipc.serve( () => {
+  ipc.serve(() => {
     ipc.server.on("message", (data) => {
       // data.through indicates to send data over the socket
-      if (data.through === "ws"){
+      if (data.through === "ws") {
         if (spark) {
           spark.write(data);
         } else {
@@ -109,7 +110,7 @@ function initIPC() {
 }
 
 function start() {
-  server.listen(8080, "localhost", () => {
+  server.listen(port, "localhost", () => {
     console.log("HTTP server is listening on port 8080");
   });
 

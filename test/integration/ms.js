@@ -1,4 +1,6 @@
-global.log = global.log || {file:console.log};
+/* eslint-env mocha */
+
+global.log = global.log || {file: console.log}; // eslint-disable-line global-require
 const simple = require("simple-mock");
 const assert = require("assert");
 const commonConfig = require("common-display-module");
@@ -9,7 +11,9 @@ describe("Local Messaging : Integration", ()=>{
   before(()=>{
     simple.mock(commonConfig, "getMachineId").returnWith("abc");
     simple.mock(commonConfig, "getDisplaySettingsSync").returnWith({displayId: "abc"});
-    require("../../src/index.js");
+    ipc.config.id = "lms";
+    ipc.config.retry = 1500;
+    localMessaging.init(ipc);
   });
 
   after(()=>{
@@ -28,7 +32,7 @@ describe("Local Messaging : Integration", ()=>{
       return new Promise(res=>ms.on("open", res))
       .then(()=>{
         ms.write({topic: "watch"});
-        return new Promise(res=>ms.on("data", data=>{console.log(data);res();}));
+        return new Promise(res=>ms.on("data", data=>{console.log(data); res();}));
       });
     });
   });
