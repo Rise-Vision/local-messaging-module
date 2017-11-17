@@ -4,8 +4,8 @@
   "description": "Player local messaging module",
   "main": "src/index.js",
   "scripts": {
-    "build": "jshint src && ./pre-build.sh && webpack --env.MODULE_VERSION=$(cat version) --config webpack.config.js && ./post-build.sh",
-    "test": "jshint . && mocha --recursive test"
+    "build": "eslint . && ./pre-build.sh && webpack --env.MODULE_VERSION=$(cat version) --config webpack.config.js && ./post-build.sh",
+    "test": "eslint --fix . && mocha -r test/mocha-env.js -t 20000 --recursive test/**"
   },
   "repository": {
     "type": "git",
@@ -20,7 +20,12 @@
   "devDependencies": {
     "babel-minify-webpack-plugin": "^0.2.0",
     "copy-webpack-plugin": "^4.1.1",
-    "jshint": "^2.9.5",
+    "eslint": "^4.10.0",
+    "eslint-config-standard": "^10.2.1",
+    "eslint-plugin-import": "^2.8.0",
+    "eslint-plugin-node": "^5.2.0",
+    "eslint-plugin-promise": "^3.6.0",
+    "eslint-plugin-standard": "^3.0.1",
     "mocha": "^4.0.0",
     "simple-mock": "^0.8.0",
     "unzipsfx-webpack-plugin": "git+https://github.com/Rise-Vision/unzipsfx-webpack-plugin.git",
@@ -29,7 +34,7 @@
     "zip-webpack-plugin": "^2.0.0"
   },
   "dependencies": {
-    "common-display-module": "git://github.com/Rise-Vision/common-display-module.git#v1.4.0",
+    "common-display-module": "git://github.com/Rise-Vision/common-display-module.git#v1.5.2",
     "node-ipc": "^9.1.1",
     "primus": "^7.1.0",
     "ws": "^3.2.0"
