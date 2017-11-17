@@ -16,9 +16,9 @@ function destroy() {
 }
 
 function initPrimus() {
-  const {displayId} = commonConfig.getDisplaySettingsSync();
+  const {displayid} = commonConfig.getDisplaySettingsSync();
   const machineId = commonConfig.getMachineId();
-  const msUrl = `${msEndpoint}?displayId=${displayId}&machineId=${machineId}`;
+  const msUrl = `${msEndpoint}?displayId=${displayid}&machineId=${machineId}`;
 
   localWS = new Primus(server, {transformer: "websockets"});
 
