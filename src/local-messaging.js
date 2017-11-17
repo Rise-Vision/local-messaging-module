@@ -85,6 +85,14 @@ function initIPC() {
       }
     });
 
+    ipc.server.on("clientlist-request", (data, socket) => {
+      ipc.server.emit(
+        socket,
+        "message",
+        {topic: "client-list", clients: Array.from(clients)}
+      );
+    });
+
     ipc.server.on("socket.disconnected", (socket, destroyedSocketID) => {
       ipc.log(`client ${destroyedSocketID} has disconnected!`);
 

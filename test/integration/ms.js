@@ -82,6 +82,30 @@ describe("Local Messaging : Integration", ()=>{
       );
 
     });
+
+    it("should listen for 'clientlist-request' event and emit a 'message' event back with client list", (done)=>{
+      ipc.config.id = "test-client";
+      ipc.connectTo(
+        "lms",
+        () => {
+          ipc.of.lms.on(
+            "connect",
+            () => {
+              ipc.of.lms.on(
+                'message',
+                (message) => {
+                  assert.deepEqual(message, {topic: "client-list", clients: ["test-client"]});
+                  done();
+                }
+              );
+
+              ipc.of.lms.emit("clientlist-request");
+            }
+          );
+        }
+      );
+
+    });
   });
 });
 
