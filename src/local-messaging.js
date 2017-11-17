@@ -4,6 +4,8 @@ const server = http.createServer( ()=>{} );
 const commonConfig = require("common-display-module");
 const msEndpoint = `https://services.risevision.com/messaging/primus/`;
 
+let clients = new Set();
+
 let ipc, ms, localWS, spark;
 
 function destroy() {
@@ -72,8 +74,26 @@ function initIPC() {
       }
     });
 
+    ipc.server.on("connected", (data) => {
+      if (data && data.client) {
+        clients.add(data.client);
+
+        ipc.server.broadcast(
+          "message",
+          {topic: "client-list", clients: Array.from(clients), status: "connected", client: data.client}
+        );
+      }
+    });
+
     ipc.server.on("socket.disconnected", (socket, destroyedSocketID) => {
       ipc.log(`client ${destroyedSocketID} has disconnected!`);
+
+      clients.delete(destroyedSocketID);
+
+      ipc.server.broadcast(
+        "message",
+        {topic: "client-list", clients: Array.from(clients), status: "disconnected", client: destroyedSocketID}
+      );
     });
 
   });
