@@ -1,8 +1,7 @@
 const Primus = require("primus");
 const http = require("http");
 const server = http.createServer(()=>{});
-const commonConfig = require("common-display-module");
-const msEndpoint = `https://services.risevision.com/messaging/primus/`;
+const websocket = require("./websocket")
 
 const clients = new Set();
 const port = 8080;
@@ -16,10 +15,6 @@ function destroy() {
 }
 
 function initPrimus() {
-  const {displayid} = commonConfig.getDisplaySettingsSync();
-  const machineId = commonConfig.getMachineId();
-  const msUrl = `${msEndpoint}?displayId=${displayid}&machineId=${machineId}`;
-
   localWS = new Primus(server, {transformer: "websockets"});
 
   localWS.on("connection", (spk) => {
@@ -31,16 +26,7 @@ function initPrimus() {
     console.log('localWS instance has been destroyed');
   });
 
-  ms = new (Primus.createSocket({
-    transformer: "websockets",
-    pathname: "messaging/primus/"
-  }))(msUrl, {
-    reconnect: {
-      max: 1800000,
-      min: 5000,
-      retries: Infinity
-    }
-  });
+  ms = websocket.createRemoteSocket();
 
   ms.on("data", data=>ipc.server.broadcast("message", data));
   ms.on("error", console.log.bind(console));
