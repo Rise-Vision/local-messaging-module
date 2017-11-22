@@ -3,6 +3,7 @@
 const assert = require("assert")
 const common = require("common-display-module")
 const Primus = require("primus")
+const ProxyAgent = require("proxy-agent")
 const simple = require("simple-mock")
 
 const websocket = require("../../src/websocket")
@@ -27,9 +28,12 @@ describe("Websocket : Unit", ()=>
     })
   })
 
-  afterEach(()=> {simple.restore()})
+  afterEach(()=> {
+    simple.restore()
+    socketCreationOptions = null
+  })
 
-  it("should create websocket considering proxy", ()=>
+  it("should create regular websocket when no proxy environment is defined", ()=>
   {
     websocket.createRemoteSocket()
 
@@ -40,6 +44,27 @@ describe("Websocket : Unit", ()=>
       min: 5000,
       retries: Infinity
     })
+
+    assert(!socketCreationOptions.transport)
+  })
+
+  it("should create websocket considering HTTPS_PROXY variable", ()=>
+  {
+    simple.mock(process.env, 'HTTPS_PROXY', 'http://localhost:9191')
+
+    websocket.createRemoteSocket()
+
+    assert(socketCreationOptions)
+
+    assert.deepEqual(socketCreationOptions.reconnect, {
+      max: 1800000,
+      min: 5000,
+      retries: Infinity
+    })
+
+    assert(socketCreationOptions.transport)
+    assert(socketCreationOptions.transport.agent)
+    assert(socketCreationOptions.transport.agent instanceof ProxyAgent)
   })
 
 })
