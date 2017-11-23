@@ -48,6 +48,23 @@ describe("Websocket : Unit", ()=>
     assert(!socketCreationOptions.transport)
   })
 
+  it("should create regular websocket when empty HTTPS_PROXY variable is defined", ()=>
+  {
+    simple.mock(process.env, 'HTTPS_PROXY', '')
+
+    websocket.createRemoteSocket()
+
+    assert(socketCreationOptions)
+
+    assert.deepEqual(socketCreationOptions.reconnect, {
+      max: 1800000,
+      min: 5000,
+      retries: Infinity
+    })
+
+    assert(!socketCreationOptions.transport)
+  })
+
   it("should create websocket considering HTTPS_PROXY variable", ()=>
   {
     simple.mock(process.env, 'HTTPS_PROXY', 'http://localhost:9191')
