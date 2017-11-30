@@ -1,8 +1,10 @@
 const Primus = require("primus");
 const http = require("http");
 const server = http.createServer(()=>{});
-const commonConfig = require("common-display-module");
+const config = require("./config/config");
+// const commonConfig = require("common-display-module");
 const msEndpoint = `https://services.risevision.com/messaging/primus/`;
+const util = require("util");
 
 const clients = new Set();
 const port = 8080;
@@ -16,8 +18,8 @@ function destroy() {
 }
 
 function initPrimus() {
-  const {displayid} = commonConfig.getDisplaySettingsSync();
-  const machineId = commonConfig.getMachineId();
+  const {displayid} = "testingdisplayID";
+  const machineId = "testMachineId";
   const msUrl = `${msEndpoint}?displayId=${displayid}&machineId=${machineId}`;
 
   localWS = new Primus(server, {transformer: "websockets"});
@@ -115,7 +117,13 @@ function start() {
   });
 
   server.on("error", (err) => {
-    console.log(`Unable to start HTTP server running on port 8080: ${JSON.stringify(err)}`);
+    const userFriendlyMessage = `Unable to start HTTP server running on port 8080: ${JSON.stringify(err)}`;
+
+    console.log(userFriendlyMessage);
+    log.error({
+      event_details: err ? err.message || util.inspect(err, {depth: 1}) : "",
+      version: config.getModuleVersion()
+    }, userFriendlyMessage, config.bqTableName);
   });
 
   ipc.server.start();

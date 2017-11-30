@@ -1,7 +1,16 @@
+const MODULE_NAME = "local-messaging";
+
+let displayId = "";
+let moduleVersion = "";
+
 module.exports = {
-  moduleName: "local-messaging",
+  moduleName: MODULE_NAME,
   bqProjectName: "client-side-events",
   bqDatasetName: "Module_Events",
-  bqFailedEntryFile: `${module.exports.moduleName}-failed.log`,
-  bqTableName: "local_messaging_events"
+  bqFailedEntryFile: `${MODULE_NAME}-failed.log`,
+  bqTableName: `${MODULE_NAME}-events`,
+  setDisplayId(id) {displayId = id;},
+  getDisplayId() {return displayId;},
+  setModuleVersion(version) {moduleVersion = version;},
+  getModuleVersion() {return moduleVersion;}
 };
