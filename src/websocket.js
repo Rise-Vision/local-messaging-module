@@ -20,7 +20,7 @@ function createRemoteSocket() {
   };
 
   const agents = commonConfig.getProxyAgents();
-  const agent = agents.httpsAgent || agents.httpsAgent || null;
+  const agent = agents.httpsAgent || agents.httpAgent || null;
   if (agent) {
     options.transport = {agent};
   }
