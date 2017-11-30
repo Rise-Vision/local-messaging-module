@@ -2,8 +2,8 @@
 /* eslint-disable max-statements, no-magic-numbers */
 const assert = require("assert")
 const common = require("common-display-module")
+const HttpsProxyAgent = require("https-proxy-agent");
 const Primus = require("primus")
-const ProxyAgent = require("proxy-agent")
 const simple = require("simple-mock")
 
 const websocket = require("../../src/websocket")
@@ -81,7 +81,7 @@ describe("Websocket : Unit", ()=>
 
     assert(socketCreationOptions.transport)
     assert(socketCreationOptions.transport.agent)
-    assert(socketCreationOptions.transport.agent instanceof ProxyAgent)
+    assert(socketCreationOptions.transport.agent instanceof HttpsProxyAgent)
   })
 
 })

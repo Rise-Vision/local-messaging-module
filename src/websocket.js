@@ -2,7 +2,6 @@
 // This was separated to facilitate testing.
 
 const Primus = require("primus");
-const ProxyAgent = require("proxy-agent");
 
 const commonConfig = require("common-display-module");
 const msEndpoint = `https://services.risevision.com/messaging/primus/`;
@@ -20,9 +19,10 @@ function createRemoteSocket() {
     }
   };
 
-  const proxyUri = process.env.HTTPS_PROXY;
-  if (proxyUri) {
-    options.transport = {agent: new ProxyAgent(proxyUri)};
+  const agents = commonConfig.getProxyAgents();
+  const agent = agents.httpsAgent || agents.httpsAgent || null;
+  if (agent) {
+    options.transport = {agent};
   }
 
   return new (Primus.createSocket({
