@@ -22,8 +22,8 @@ ipc.config.retry = 1500;
 if (process.env.NODE_ENV !== "test") {localMessaging.init(ipc);}
 
 module.exports = {
-  start() {
-    return localMessaging.init(ipc);
+  start(displayId, machineId) {
+    return localMessaging.init(ipc, displayId, machineId);
   },
   stop() {
     localMessaging.destroy();

@@ -1,9 +1,8 @@
 const Primus = require("primus");
 const http = require("http");
 const server = http.createServer(()=>{});
+const websocket = require("./websocket")
 const config = require("./config/config");
-// const commonConfig = require("common-display-module");
-const msEndpoint = `https://services.risevision.com/messaging/primus/`;
 const util = require("util");
 
 const clients = new Set();
@@ -17,11 +16,7 @@ function destroy() {
   if (ipc) {ipc.server.stop();}
 }
 
-function initPrimus() {
-  const {displayid} = "testingdisplayID";
-  const machineId = "testMachineId";
-  const msUrl = `${msEndpoint}?displayId=${displayid}&machineId=${machineId}`;
-
+function initPrimus(displayId, machineId) {
   localWS = new Primus(server, {transformer: "websockets"});
 
   localWS.on("connection", (spk) => {
@@ -33,16 +28,7 @@ function initPrimus() {
     console.log('localWS instance has been destroyed');
   });
 
-  ms = new (Primus.createSocket({
-    transformer: "websockets",
-    pathname: "messaging/primus/"
-  }))(msUrl, {
-    reconnect: {
-      max: 1800000,
-      min: 5000,
-      retries: Infinity
-    }
-  });
+  ms = websocket.createRemoteSocket(displayId, machineId);
 
   ms.on("data", data=>ipc.server.broadcast("message", data));
   ms.on("error", console.log.bind(console));
@@ -121,8 +107,8 @@ function start() {
 
     console.log(userFriendlyMessage);
     log.error({
-      event_details: err ? err.message || util.inspect(err, {depth: 1}) : "",
-      version: config.getModuleVersion()
+        event_details: err ? err.message || util.inspect(err, {depth: 1}) : "",
+        version: config.getModuleVersion()
     }, userFriendlyMessage, config.bqTableName);
   });
 
@@ -130,12 +116,12 @@ function start() {
 }
 
 module.exports = {
-  init(_ipc) {
+  init(_ipc, displayId, machineId) {
     ipc = _ipc;
 
     initIPC();
     start();
-    return initPrimus();
+    return initPrimus(displayId, machineId);
   },
   destroy,
   getMS() {return ms;}
