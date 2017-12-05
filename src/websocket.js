@@ -6,10 +6,10 @@ const Primus = require("primus");
 const commonConfig = require("common-display-module");
 const msEndpoint = `https://services.risevision.com/messaging/primus/`;
 
-function createRemoteSocket() {
-  const {displayid} = commonConfig.getDisplaySettingsSync();
-  const machineId = commonConfig.getMachineId();
-  const msUrl = `${msEndpoint}?displayId=${displayid}&machineId=${machineId}`;
+function createRemoteSocket(displayId, machineId) {
+  displayId = displayId || commonConfig.getDisplaySettingsSync().displayid;
+  machineId = machineId || commonConfig.getMachineId();
+  const msUrl = `${msEndpoint}?displayId=${displayId}&machineId=${machineId}`;
 
   const options = {
     reconnect: {
