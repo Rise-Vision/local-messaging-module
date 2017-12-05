@@ -14,7 +14,7 @@ function destroy() {
   if (ipc) {ipc.server.stop();}
 }
 
-function initPrimus() {
+function initPrimus(displayId, machineId) {
   localWS = new Primus(server, {transformer: "websockets"});
 
   localWS.on("connection", (spk) => {
@@ -26,7 +26,7 @@ function initPrimus() {
     console.log('localWS instance has been destroyed');
   });
 
-  ms = websocket.createRemoteSocket();
+  ms = websocket.createRemoteSocket(displayId, machineId);
 
   ms.on("data", data=>ipc.server.broadcast("message", data));
   ms.on("error", console.log.bind(console));
@@ -108,12 +108,12 @@ function start() {
 }
 
 module.exports = {
-  init(_ipc) {
+  init(_ipc, displayId, machineId) {
     ipc = _ipc;
 
     initIPC();
     start();
-    return initPrimus();
+    return initPrimus(displayId, machineId);
   },
   destroy,
   getMS() {return ms;}

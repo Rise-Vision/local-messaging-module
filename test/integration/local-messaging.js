@@ -13,7 +13,7 @@ describe("Local Messaging : Integration", ()=>{
     simple.mock(commonConfig, "getDisplaySettingsSync").returnWith({displayId: "abc"});
     ipc.config.id = "lms";
     ipc.config.retry = 1500;
-    localMessaging.init(ipc);
+    localMessaging.init(ipc, "lmm-test", "lmm-test");
   });
 
   after(()=>{
