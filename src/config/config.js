@@ -1,4 +1,6 @@
 const MODULE_NAME = "local-messaging";
+const BASEBYTES = 10;
+const EXPO = 5;
 
 let displayId = "";
 let moduleVersion = "";
@@ -12,5 +14,6 @@ module.exports = {
   setDisplayId(id) {displayId = id;},
   getDisplayId() {return displayId;},
   setModuleVersion(version) {moduleVersion = version;},
-  getModuleVersion() {return moduleVersion;}
+  getModuleVersion() {return moduleVersion;},
+  maxFileSizeBytes: Math.pow(BASEBYTES, EXPO)
 };

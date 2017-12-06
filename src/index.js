@@ -1,5 +1,5 @@
 const ipc = require("node-ipc");
-const localMessaging = require("./local-messaging.js");
+const localMessaging = require("./local-messaging");
 const commonConfig = require("common-display-module");
 const config = require("./config/config");
 const externalLogger = require("./external-logger");
@@ -12,14 +12,20 @@ commonConfig.getDisplayId()
     .then(displayId=>{
       config.setDisplayId(displayId);
       config.setModuleVersion(commonConfig.getModuleVersion(config.moduleName));
+
+      log.resetLogFiles(config.maxFileSizeBytes);
       log.setDisplaySettings({displayid: displayId});
-      log.setModuleSettings({moduleid: commonConfig.getModuleVersion(config.moduleName)});
-    });
+    })
+    .catch(error =>console.log(`${config.moduleName} error: ${error}`));
 
 ipc.config.id = "lms";
 ipc.config.retry = 1500;
 
-if (process.env.NODE_ENV !== "test") {localMessaging.init(ipc);}
+if(process.env.NODE_ENV === "local") {
+  localMessaging.init(ipc, config.getDisplayId, commonConfig.getMachineId() || "abc");
+} else if (process.env.NODE_ENV !== "test") {
+  localMessaging.init(ipc, config.getDisplayId, commonConfig.getMachineId());
+}
 
 module.exports = {
   start(displayId, machineId) {

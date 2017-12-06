@@ -5,7 +5,8 @@
   "main": "src/index.js",
   "scripts": {
     "build": "eslint . && ./pre-build.sh && webpack --env.MODULE_VERSION=$(cat version) --config webpack.config.js && ./post-build.sh",
-    "test": "eslint --fix . && mocha -r test/mocha-env.js -t 20000 --recursive test/**"
+    "test": "eslint --fix . && mocha -r test/mocha-env.js -t 20000 --recursive test/**",
+    "start-local": "NODE_ENV=local node src/index.js"
   },
   "repository": {
     "type": "git",

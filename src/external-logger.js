@@ -2,7 +2,6 @@ const config = require("./config/config");
 const ipc = require("node-ipc");
 
 let displaySettings = {};
-let moduleSettings = {};
 
 function validateMessage(message, detail) {
   let error = "";
@@ -20,13 +19,12 @@ function validateMessage(message, detail) {
   return error;
 }
 
-module.exports = () =>{
-  return {
-    log (evt, detail, table, moduleName) {
+module.exports = {
+    log(evt, detail, table, moduleName) {
       const displayId = displaySettings.displayid || displaySettings.tempdisplayid || config.getDisplayId() || detail.display_id;
-      const moduleVersion = moduleSettings.moduleversion || config.getModuleVersion() || detail.version;
+      const moduleVersion = config.getModuleVersion() || detail.version;
 
-      if (!displayId) {
+      if(!displayId) {
         throw new Error("Display ID not provided");
       }
 
@@ -57,9 +55,5 @@ module.exports = () =>{
     },
     setDisplaySettings(settings) {
       displaySettings = settings;
-    },
-    setModuleSettings(settings) {
-      moduleSettings = settings;
     }
-  }
 };

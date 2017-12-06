@@ -1,11 +1,9 @@
 /* eslint-env mocha */
 
 const assert = require("assert");
-// const config = require("../../common.js"),
-// const ipc = require('node-ipc');
 const simpleMock = require("simple-mock");
 const mock = simpleMock.mock;
-const externalLogger = require('../../src/external-logger')();
+const externalLogger = require('../../src/external-logger');
 
 describe("Logging Events : Integration", ()=>{
   describe("Initialization", ()=>{
