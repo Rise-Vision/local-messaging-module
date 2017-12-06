@@ -59,6 +59,7 @@ describe("Local Messaging : Integration", ()=>{
           );
         }
       );
+
     });
 
     it("should listen for 'message' event and broadcast the 'message' event", (done)=>{
@@ -83,6 +84,7 @@ describe("Local Messaging : Integration", ()=>{
           );
         }
       );
+
     });
 
     it("should listen for 'clientlist-request' event and emit a 'message' event back with client list", (done)=>{
@@ -106,7 +108,7 @@ describe("Local Messaging : Integration", ()=>{
           );
         }
       );
-    });
 
+    });
   });
 });

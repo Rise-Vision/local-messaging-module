@@ -13,7 +13,6 @@ commonConfig.getDisplayId()
       config.setDisplayId(displayId);
       config.setModuleVersion(commonConfig.getModuleVersion(config.moduleName));
 
-      log.resetLogFiles(config.maxFileSizeBytes);
       log.setDisplaySettings({displayid: displayId});
     })
     .catch(error =>console.log(`${config.moduleName} error: ${error}`));
@@ -21,11 +20,7 @@ commonConfig.getDisplayId()
 ipc.config.id = "lms";
 ipc.config.retry = 1500;
 
-if(process.env.NODE_ENV === "local") {
-  localMessaging.init(ipc, config.getDisplayId, commonConfig.getMachineId() || "abc");
-} else if (process.env.NODE_ENV !== "test") {
-  localMessaging.init(ipc, config.getDisplayId, commonConfig.getMachineId());
-}
+if (process.env.NODE_ENV !== "test") {localMessaging.init(ipc);}
 
 module.exports = {
   start(displayId, machineId) {

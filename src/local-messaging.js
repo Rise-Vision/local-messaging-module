@@ -31,7 +31,16 @@ function initPrimus(displayId, machineId) {
   ms = websocket.createRemoteSocket(displayId, machineId);
 
   ms.on("data", data=>ipc.server.broadcast("message", data));
-  ms.on("error", console.log.bind(console));
+  ms.on("error", (err) => {
+    const userFriendlyMessage = `MS socket connection error: ${err.message}`;
+
+    console.log(userFriendlyMessage);
+    log.error({
+        "event_details": err ? err.message || util.inspect(err, {depth: 1}) : "",
+        "version": config.getModuleVersion()
+    }, userFriendlyMessage, config.bqTableName);
+  });
+
   return new Promise(res=>ms.on("open", ()=>{
     console.log("MS connection opened");
     res();
@@ -107,8 +116,8 @@ function start() {
 
     console.log(userFriendlyMessage);
     log.error({
-        event_details: err ? err.message || util.inspect(err, {depth: 1}) : "",
-        version: config.getModuleVersion()
+        "event_details": err ? err.message || util.inspect(err, {depth: 1}) : "",
+        "version": config.getModuleVersion()
     }, userFriendlyMessage, config.bqTableName);
   });
 

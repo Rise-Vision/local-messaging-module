@@ -4,6 +4,8 @@ const assert = require("assert");
 const simpleMock = require("simple-mock");
 const mock = simpleMock.mock;
 const externalLogger = require('../../src/external-logger');
+const localMessaging = require("../../src/local-messaging.js");
+const ipc = require("node-ipc");
 
 describe("Logging Events : Integration", ()=>{
   describe("Initialization", ()=>{
@@ -15,9 +17,8 @@ describe("Logging Events : Integration", ()=>{
 
   describe("Message configuration for broadcasting to Logging Module", ()=>{
     beforeEach(()=>{
+      externalLogger.setDisplaySettings({displayid: "lmn-test"});
       mock(console, 'log');
-
-      externalLogger.setDisplaySettings({displayid: "abc123"});
     });
 
     afterEach(()=>{
@@ -35,5 +36,59 @@ describe("Logging Events : Integration", ()=>{
     });
   });
 
+  describe("External Logging", ()=>{
+    before(()=>{
+      ipc.config.id = "lms";
+      ipc.config.retry = 1500;
+      localMessaging.init(ipc, "lmn-test", "lmn-test");
+    });
+
+    after(()=>{
+      localMessaging.destroy();
+    });
+
+    afterEach(()=>{
+      ipc.disconnect('lms');
+      simpleMock.restore();
+    });
+
+    it("should broadcast message for logging module", (done)=>{
+      const expectedMessage = {
+        topic: 'log',
+        from: 'testFrom',
+        data: {
+          'projectName': 'client-side-events',
+          'datasetName': 'Module_Events',
+          'failedEntryFile': 'local-messaging-failed.log',
+          'table': 'testTable',
+          'data': {
+            'display_id': 'lmn-test',
+            'event': 'testEvent',
+            'event_details': 'test-details',
+            'version': ''
+          }
+        }
+      };
+
+      ipc.connectTo(
+        'lms',
+        () => {
+          ipc.of.lms.on(
+            'connect',
+            () => {
+              ipc.of.lms.on(
+                'message',
+                (message) => {
+                  assert.deepEqual(message, expectedMessage);
+                  done();
+                }
+              );
+              externalLogger.log("testEvent", {"event_details": "test-details"}, "testTable", "testFrom");
+            }
+          );
+        }
+      );
+    });
+  });
 
 });
