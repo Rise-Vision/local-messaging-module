@@ -133,5 +133,8 @@ module.exports = {
     return initPrimus(displayId, machineId);
   },
   destroy,
-  getMS() {return ms;}
+  getMS() {return ms;},
+  isInClientList(id) {
+    return Array.from(clients).indexOf(id) > -1;
+  }
 };

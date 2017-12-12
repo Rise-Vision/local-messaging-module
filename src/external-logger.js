@@ -1,5 +1,6 @@
 const config = require("./config/config");
 const ipc = require("node-ipc");
+const localMessaging = require("./local-messaging");
 
 let displaySettings = {};
 
@@ -19,35 +20,46 @@ function validateMessage(message, detail) {
   return error;
 }
 
+function constructMessage(evt, detail, table, moduleName) {
+  const displayId = displaySettings.displayid || displaySettings.tempdisplayid || config.getDisplayId() || detail.display_id;
+  const moduleVersion = config.getModuleVersion() || detail.version || "";
+
+  if (!displayId) {
+    throw new Error("Display ID not provided");
+  }
+
+  const dataObject = Object.assign({"event": evt, "event_details": detail, "display_id": displayId, "version": moduleVersion}, detail);
+
+  const message = {
+    "topic": "log",
+    "from": moduleName || config.moduleName,
+    "data": {
+      "projectName": config.bqProjectName,
+      "datasetName": config.bqDatasetName,
+      "failedEntryFile": config.bqFailedEntryFile,
+      "table": table || config.bqTableName,
+      "data": dataObject
+    }
+  };
+
+  return message;
+}
+
 module.exports = {
     log(evt, detail, table, moduleName) {
-      const displayId = displaySettings.displayid || displaySettings.tempdisplayid || config.getDisplayId() || detail.display_id;
-      const moduleVersion = config.getModuleVersion() || detail.version || "";
-
-      if (!displayId) {
-        throw new Error("Display ID not provided");
-      }
-
-      const dataObject = Object.assign({"event": evt, "event_details": detail, "display_id": displayId, "version": moduleVersion}, detail);
-
-      const message = {
-        "topic": "log",
-        "from": moduleName || config.moduleName,
-        "data": {
-          "projectName": config.bqProjectName,
-          "datasetName": config.bqDatasetName,
-          "failedEntryFile": config.bqFailedEntryFile,
-          "table": table || config.bqTableName,
-          "data": dataObject
-        }
-      };
-
+      const message = constructMessage(evt, detail, table, moduleName);
       const messageError = validateMessage(message, detail);
+
       if (!messageError) {
-        ipc.server.broadcast("message", message);
+        if (localMessaging.isInClientList("logging")) {
+          ipc.server.broadcast("message", message);
+        } else {
+          console.log(`external-logger error - ${config.moduleName}: logging module not connected, could not log:\n${JSON.stringify(message)}`);
+        }
       } else {
         console.log(`external-logger error - ${config.moduleName}: ${messageError}`);
       }
+
     },
     setDisplaySettings(settings) {
       displaySettings = settings;

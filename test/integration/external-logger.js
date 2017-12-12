@@ -43,6 +43,10 @@ describe("Logging Events : Integration", ()=>{
       localMessaging.init(ipc, "lmn-test", "lmn-test");
     });
 
+    beforeEach(()=>{
+      mock(console, 'log');
+    });
+
     after(()=>{
       localMessaging.destroy();
     });
@@ -70,6 +74,8 @@ describe("Logging Events : Integration", ()=>{
         }
       };
 
+      mock(localMessaging, "isInClientList").returnWith(true);
+
       ipc.connectTo(
         'lms',
         () => {
@@ -89,6 +95,41 @@ describe("Logging Events : Integration", ()=>{
         }
       );
     });
-  });
 
+    it("should log console message if logging module is not connected", (done)=>{
+      const expectedMessage = {
+        topic: 'log',
+        from: 'testFrom',
+        data: {
+          'projectName': 'client-side-events',
+          'datasetName': 'Module_Events',
+          'failedEntryFile': 'local-messaging-failed.log',
+          'table': 'testTable',
+          'data': {
+            'event': 'testEvent',
+            'event_details': 'test-details',
+            'display_id': 'lmn-test',
+            'version': ''
+          }
+        }
+      };
+
+      const expectedErrorLog = `external-logger error - local-messaging: logging module not connected, could not log:\n${JSON.stringify(expectedMessage)}`;
+      console.error(expectedErrorLog);
+      ipc.connectTo(
+        'lms',
+        () => {
+          ipc.of.lms.on(
+            'connect',
+            () => {
+              externalLogger.log("testEvent", {"event_details": "test-details"}, "testTable", "testFrom")
+              assert.deepEqual(console.log.lastCall.args[0], expectedErrorLog);
+              done();
+            }
+          )
+        }
+      );
+    });
+
+  });
 });
