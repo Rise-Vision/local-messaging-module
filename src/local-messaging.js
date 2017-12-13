@@ -2,6 +2,8 @@ const Primus = require("primus");
 const http = require("http");
 const server = http.createServer(()=>{});
 const websocket = require("./websocket")
+const config = require("./config/config");
+const util = require("util");
 
 const clients = new Set();
 const port = 8080;
@@ -29,7 +31,16 @@ function initPrimus(displayId, machineId) {
   ms = websocket.createRemoteSocket(displayId, machineId);
 
   ms.on("data", data=>ipc.server.broadcast("message", data));
-  ms.on("error", console.log.bind(console));
+  ms.on("error", (err) => {
+    const userFriendlyMessage = `MS socket connection error: ${err.message}`;
+
+    console.log(userFriendlyMessage);
+    log.error({
+        "event_details": err ? err.message || util.inspect(err, {depth: 1}) : "",
+        "version": config.getModuleVersion()
+    }, userFriendlyMessage, config.bqTableName);
+  });
+
   return new Promise(res=>ms.on("open", ()=>{
     console.log("MS connection opened");
     res();
@@ -101,7 +112,13 @@ function start() {
   });
 
   server.on("error", (err) => {
-    console.log(`Unable to start HTTP server running on port 8080: ${JSON.stringify(err)}`);
+    const userFriendlyMessage = `Unable to start HTTP server running on port 8080: ${JSON.stringify(err)}`;
+
+    console.log(userFriendlyMessage);
+    log.error({
+        "event_details": err ? err.message || util.inspect(err, {depth: 1}) : "",
+        "version": config.getModuleVersion()
+    }, userFriendlyMessage, config.bqTableName);
   });
 
   ipc.server.start();
@@ -116,5 +133,8 @@ module.exports = {
     return initPrimus(displayId, machineId);
   },
   destroy,
-  getMS() {return ms;}
+  getMS() {return ms;},
+  isInClientList(id) {
+    return Array.from(clients).indexOf(id) > -1;
+  }
 };
