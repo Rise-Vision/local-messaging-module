@@ -23,13 +23,20 @@ function initConfig() {
 
       log.setDisplaySettings({displayid: displayId});
     })
-    .catch(error =>console.log(`${config.moduleName} error: ${error}`));
+    .catch(err =>{
+      log.file(err ? err.stack || util.inspect(err, {depth: 1}) : "", "Error retrieving display id");
+    });
 }
 
 function start(ipc, displayId, machineId) {
   return initConfig()
     .then(()=>{
       localMessaging.init(ipc, displayId, machineId)
+        .then(()=>{
+          log.all("started", {
+            version: config.getModuleVersion()
+          }, null, config.bqTableName);
+        })
     });
 }
 

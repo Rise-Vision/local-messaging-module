@@ -25,16 +25,15 @@ function initPrimus(displayId, machineId) {
   });
 
   localWS.on("destroy", () => {
-    console.log('localWS instance has been destroyed');
+    log.all("localWS instance has been destroyed");
   });
 
   ms = websocket.createRemoteSocket(displayId, machineId);
 
   ms.on("data", data=>ipc.server.broadcast("message", data));
   ms.on("error", (err) => {
-    const userFriendlyMessage = `MS socket connection error: ${err.message}`;
+    const userFriendlyMessage = "MS socket connection error";
 
-    console.log(userFriendlyMessage);
     log.error({
         "event_details": err ? err.message || util.inspect(err, {depth: 1}) : "",
         "version": config.getModuleVersion()
@@ -42,7 +41,7 @@ function initPrimus(displayId, machineId) {
   });
 
   return new Promise(res=>ms.on("open", ()=>{
-    console.log("MS connection opened");
+    log.file(null, "MS connection opened");
     res();
   }));
 }
@@ -55,13 +54,13 @@ function initIPC() {
         if (spark) {
           spark.write(data);
         } else {
-          console.log("No clients connected to WS");
+          log.file(`Unable to send data through local WS: ${JSON.stringify(data)}`, "No clients connected to WS");
         }
       } else if (data.through === "ms") {
         if (ms) {
           ms.write(data);
         } else {
-          console.log("MS not connected");
+          log.file(`Unable to send data through MS: ${JSON.stringify(data)}`, "MS not connected");
         }
       } else {
         // broadcast to all client sockets
@@ -93,6 +92,7 @@ function initIPC() {
 
     ipc.server.on("socket.disconnected", (socket, destroyedSocketID) => {
       ipc.log(`client ${destroyedSocketID} has disconnected!`);
+      log.file(`${destroyedSocketID} has disconnected`);
 
       clients.delete(destroyedSocketID);
 
@@ -108,17 +108,12 @@ function initIPC() {
 
 function start() {
   server.listen(port, "localhost", () => {
-    console.log("HTTP server is listening on port 8080");
+    log.file(null, "HTTP server is listening on port 8080");
   });
 
   server.on("error", (err) => {
-    const userFriendlyMessage = `Unable to start HTTP server running on port 8080: ${JSON.stringify(err)}`;
-
-    console.log(userFriendlyMessage);
-    log.error({
-        "event_details": err ? err.message || util.inspect(err, {depth: 1}) : "",
-        "version": config.getModuleVersion()
-    }, userFriendlyMessage, config.bqTableName);
+    const userFriendlyMessage = "Unable to start HTTP server running on port 8080";
+    log.file(err ? err.stack || util.inspect(err, {depth: 1}) : "", userFriendlyMessage);
   });
 
   ipc.server.start();
