@@ -5,6 +5,7 @@ const config = require("./config/config");
 const externalLogger = require("./external-logger");
 const modulePath = commonConfig.getModulePath(config.moduleName);
 const preventBQLog = process.env.RISE_PREVENT_BQ_LOG;
+const util = require("util");
 
 global.log = require("rise-common-electron").logger(preventBQLog ? null : externalLogger, modulePath, config.moduleName);
 

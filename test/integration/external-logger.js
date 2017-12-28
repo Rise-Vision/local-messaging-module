@@ -1,5 +1,7 @@
 /* eslint-env mocha */
 
+global.log = global.log || {file: ()=>{}, debug: ()=>{}}; // eslint-disable-line global-require
+
 const assert = require("assert");
 const simpleMock = require("simple-mock");
 const mock = simpleMock.mock;
@@ -18,7 +20,7 @@ describe("Logging Events : Integration", ()=>{
   describe("Message configuration for broadcasting to Logging Module", ()=>{
     beforeEach(()=>{
       externalLogger.setDisplaySettings({displayid: "lmn-test"});
-      mock(console, 'log');
+      mock(log, 'file');
     });
 
     afterEach(()=>{
@@ -27,16 +29,17 @@ describe("Logging Events : Integration", ()=>{
 
     it("should not send message to LM and log error if message.data.event is null", ()=>{
       externalLogger.log("", {"detail": "testDetail"});
-      assert.deepEqual(console.log.lastCall.args[0], "external-logger error - local-messaging: BQ event is required");
+      console.log(log.file.lastCall.args[0]);
+      assert.deepEqual(log.file.lastCall.args[0], "external-logger error: BQ event is required");
     });
 
     it("should not send message to LM and log error if message.data.detail is null", ()=>{
       externalLogger.log("test-event", {});
-      assert.deepEqual(console.log.lastCall.args[0], "external-logger error - local-messaging: BQ detail is required");
+      assert.deepEqual(log.file.lastCall.args[0], "external-logger error: BQ detail is required");
     });
   });
 
-  describe("External Logging", ()=>{
+   describe("External Logging", ()=>{
     before(()=>{
       ipc.config.id = "lms";
       ipc.config.retry = 1500;
@@ -44,7 +47,7 @@ describe("Logging Events : Integration", ()=>{
     });
 
     beforeEach(()=>{
-      mock(console, 'log');
+      mock(log, "debug");
     });
 
     after(()=>{
@@ -114,8 +117,7 @@ describe("Logging Events : Integration", ()=>{
         }
       };
 
-      const expectedErrorLog = `external-logger error - local-messaging: logging module not connected, could not log:\n${JSON.stringify(expectedMessage)}`;
-      console.error(expectedErrorLog);
+      const expectedErrorLog = `logging module not connected, could not log:\n${JSON.stringify(expectedMessage)}`;
       ipc.connectTo(
         'lms',
         () => {
@@ -123,7 +125,7 @@ describe("Logging Events : Integration", ()=>{
             'connect',
             () => {
               externalLogger.log("testEvent", {"event_details": "test-details"}, "testTable", "testFrom")
-              assert.deepEqual(console.log.lastCall.args[0], expectedErrorLog);
+              assert.deepEqual(log.debug.lastCall.args[0], expectedErrorLog);
               done();
             }
           )

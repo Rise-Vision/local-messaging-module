@@ -57,7 +57,7 @@ module.exports = {
           log.debug(`logging module not connected, could not log:\n${JSON.stringify(message)}`);
         }
       } else {
-        log.file(`external-logger error:  ${messageError}`, "Invalid external log");
+        log.file(`external-logger error: ${messageError}`, "Invalid external log");
       }
 
     },
