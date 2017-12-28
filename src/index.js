@@ -5,6 +5,7 @@ const config = require("./config/config");
 const externalLogger = require("./external-logger");
 const modulePath = commonConfig.getModulePath(config.moduleName);
 const preventBQLog = process.env.RISE_PREVENT_BQ_LOG;
+const util = require("util");
 
 global.log = require("rise-common-electron").logger(preventBQLog ? null : externalLogger, modulePath, config.moduleName);
 
@@ -23,13 +24,20 @@ function initConfig() {
 
       log.setDisplaySettings({displayid: displayId});
     })
-    .catch(error =>console.log(`${config.moduleName} error: ${error}`));
+    .catch(err =>{
+      log.file(err ? err.stack || util.inspect(err, {depth: 1}) : "", "Error retrieving display id");
+    });
 }
 
 function start(ipc, displayId, machineId) {
   return initConfig()
     .then(()=>{
       localMessaging.init(ipc, displayId, machineId)
+        .then(()=>{
+          log.all("started", {
+            version: config.getModuleVersion()
+          }, null, config.bqTableName);
+        })
     });
 }
 
