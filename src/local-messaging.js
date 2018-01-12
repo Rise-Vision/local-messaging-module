@@ -76,19 +76,31 @@ function initIPC() {
       if (data && data.client) {
         clients.add(data.client);
 
+        const message = {topic: "client-list", installedClients, clients: Array.from(clients), status: "connected", client: data.client};
+
         ipc.server.broadcast(
           "message",
-          {topic: "client-list", installedClients, clients: Array.from(clients), status: "connected", client: data.client}
+          message
         );
+
+        if (spark) {
+          spark.write(message);
+        }
       }
     });
 
     ipc.server.on("clientlist-request", (data, socket) => {
+      const message = {topic: "client-list", installedClients, clients: Array.from(clients)};
+
       ipc.server.emit(
         socket,
         "message",
-        {topic: "client-list", installedClients, clients: Array.from(clients)}
+        message
       );
+
+      if (spark) {
+        spark.write(message);
+      }
     });
 
     ipc.server.on("socket.disconnected", (socket, destroyedSocketID) => {
@@ -97,10 +109,16 @@ function initIPC() {
 
       clients.delete(destroyedSocketID);
 
+      const message = {topic: "client-list", clients: Array.from(clients), status: "disconnected", client: destroyedSocketID};
+
       ipc.server.broadcast(
         "message",
-        {topic: "client-list", clients: Array.from(clients), status: "disconnected", client: destroyedSocketID}
+        message
       );
+
+      if (spark) {
+        spark.write(message);
+      }
     });
 
   });
