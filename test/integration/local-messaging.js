@@ -8,9 +8,13 @@ const localMessaging = require("../../src/local-messaging.js");
 const ipc = require("node-ipc");
 
 describe("Local Messaging : Integration", ()=>{
+  const baseTestClientName = "test-client";
+  const testManifest = {"test-client": {"version": "2018.01"}, "test-client-2": {"version": "2018.01"}, "test-client-3": {"version": "2018.01"}};
+
   before(()=>{
     simple.mock(commonConfig, "getMachineId").returnWith("abc");
     simple.mock(commonConfig, "getDisplaySettingsSync").returnWith({displayId: "abc"});
+    simple.mock(commonConfig, "getManifest").returnWith(testManifest);
     ipc.config.id = "lms";
     ipc.config.retry = 1500;
     localMessaging.init(ipc, "lmm-test", "lmm-test");
@@ -39,7 +43,7 @@ describe("Local Messaging : Integration", ()=>{
 
   describe("Local Messaging IPC", () => {
     it("should listen for 'connected' event and broadcast message 'client-list' providing clients", (done)=>{
-      ipc.config.id = "test-client";
+      ipc.config.id = baseTestClientName;
       ipc.connectTo(
         'lms',
         () => {
@@ -51,7 +55,7 @@ describe("Local Messaging : Integration", ()=>{
               ipc.of.lms.on(
                 'message',
                 (message) => {
-                  assert.deepEqual(message, {topic: "client-list", clients: [ipc.config.id], status: "connected", client: ipc.config.id});
+                  assert.deepEqual(message, {topic: "client-list", installedClients: [baseTestClientName, `${baseTestClientName}-2`, `${baseTestClientName}-3`], clients: [baseTestClientName], status: "connected", client: ipc.config.id});
                   done();
                 }
               );
@@ -63,7 +67,7 @@ describe("Local Messaging : Integration", ()=>{
     });
 
     it("should listen for 'message' event and broadcast the 'message' event", (done)=>{
-      const testMessage = {from: "test-client", topic: "test-topic", data: "test-message"};
+      const testMessage = {from: baseTestClientName, topic: "test-topic", data: "test-message"};
 
       ipc.connectTo(
         'lms',
@@ -88,7 +92,7 @@ describe("Local Messaging : Integration", ()=>{
     });
 
     it("should listen for 'clientlist-request' event and emit a 'message' event back with client list", (done)=>{
-      ipc.config.id = "test-client";
+      ipc.config.id = baseTestClientName;
       ipc.connectTo(
         "lms",
         () => {
@@ -98,7 +102,7 @@ describe("Local Messaging : Integration", ()=>{
               ipc.of.lms.on(
                 'message',
                 (message) => {
-                  assert.deepEqual(message, {topic: "client-list", clients: ["test-client"]});
+                  assert.deepEqual(message, {topic: "client-list", installedClients: [baseTestClientName, `${baseTestClientName}-2`, `${baseTestClientName}-3`], clients: [baseTestClientName]});
                   done();
                 }
               );

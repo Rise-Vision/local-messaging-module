@@ -1,14 +1,15 @@
 const Primus = require("primus");
 const http = require("http");
 const server = http.createServer(()=>{});
-const websocket = require("./websocket")
+const websocket = require("./websocket");
+const commonConfig = require("common-display-module");
 const config = require("./config/config");
 const util = require("util");
 
 const clients = new Set();
 const port = 8080;
 
-let ipc, localWS, ms, spark;
+let installedClients, ipc, localWS, ms, spark;
 
 function destroy() {
   if (localWS) {localWS.destroy();}
@@ -77,7 +78,7 @@ function initIPC() {
 
         ipc.server.broadcast(
           "message",
-          {topic: "client-list", clients: Array.from(clients), status: "connected", client: data.client}
+          {topic: "client-list", installedClients, clients: Array.from(clients), status: "connected", client: data.client}
         );
       }
     });
@@ -86,7 +87,7 @@ function initIPC() {
       ipc.server.emit(
         socket,
         "message",
-        {topic: "client-list", clients: Array.from(clients)}
+        {topic: "client-list", installedClients, clients: Array.from(clients)}
       );
     });
 
@@ -119,10 +120,17 @@ function start() {
   ipc.server.start();
 }
 
+function configureInstalledList() {
+  const manifest = commonConfig.getManifest();
+
+  installedClients = Object.keys(manifest).length > 0 ? Object.keys(manifest) : [];
+}
+
 module.exports = {
   init(_ipc, displayId, machineId) {
     ipc = _ipc;
 
+    configureInstalledList();
     initIPC();
     start();
     return initPrimus(displayId, machineId);
