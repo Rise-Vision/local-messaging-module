@@ -141,7 +141,7 @@ function start() {
 function configureInstalledList() {
   const manifest = commonConfig.getManifest();
 
-  installedClients = Object.keys(manifest).length > 0 ? Object.keys(manifest) : [];
+  installedClients = Object.keys(manifest);
 }
 
 module.exports = {
