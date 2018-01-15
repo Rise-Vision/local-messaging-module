@@ -1,14 +1,15 @@
 const Primus = require("primus");
 const http = require("http");
 const server = http.createServer(()=>{});
-const websocket = require("./websocket")
+const websocket = require("./websocket");
+const commonConfig = require("common-display-module");
 const config = require("./config/config");
 const util = require("util");
 
 const clients = new Set();
 const port = 8080;
 
-let ipc, localWS, ms, spark;
+let installedClients, ipc, localWS, ms, spark;
 
 function destroy() {
   if (localWS) {localWS.destroy();}
@@ -75,19 +76,31 @@ function initIPC() {
       if (data && data.client) {
         clients.add(data.client);
 
+        const message = {topic: "client-list", installedClients, clients: Array.from(clients), status: "connected", client: data.client};
+
         ipc.server.broadcast(
           "message",
-          {topic: "client-list", clients: Array.from(clients), status: "connected", client: data.client}
+          message
         );
+
+        if (spark) {
+          spark.write(message);
+        }
       }
     });
 
     ipc.server.on("clientlist-request", (data, socket) => {
+      const message = {topic: "client-list", installedClients, clients: Array.from(clients)};
+
       ipc.server.emit(
         socket,
         "message",
-        {topic: "client-list", clients: Array.from(clients)}
+        message
       );
+
+      if (spark) {
+        spark.write(message);
+      }
     });
 
     ipc.server.on("socket.disconnected", (socket, destroyedSocketID) => {
@@ -96,10 +109,16 @@ function initIPC() {
 
       clients.delete(destroyedSocketID);
 
+      const message = {topic: "client-list", clients: Array.from(clients), status: "disconnected", client: destroyedSocketID};
+
       ipc.server.broadcast(
         "message",
-        {topic: "client-list", clients: Array.from(clients), status: "disconnected", client: destroyedSocketID}
+        message
       );
+
+      if (spark) {
+        spark.write(message);
+      }
     });
 
   });
@@ -119,10 +138,17 @@ function start() {
   ipc.server.start();
 }
 
+function configureInstalledList() {
+  const manifest = commonConfig.getManifest();
+
+  installedClients = Object.keys(manifest);
+}
+
 module.exports = {
   init(_ipc, displayId, machineId) {
     ipc = _ipc;
 
+    configureInstalledList();
     initIPC();
     start();
     return initPrimus(displayId, machineId);
