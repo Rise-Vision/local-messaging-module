@@ -5,6 +5,7 @@ const websocket = require("./websocket");
 const commonConfig = require("common-display-module");
 const config = require("./config/config");
 const util = require("util");
+const heartbeat = require("common-display-module/heartbeat");
 
 const clients = new Set();
 const port = 8080;
@@ -15,6 +16,8 @@ function destroy() {
   if (localWS) {localWS.destroy();}
   if (ms) {ms.destroy();}
   if (ipc) {ipc.server.stop();}
+
+  heartbeat.stop();
 }
 
 function initPrimus(displayId, machineId) {
@@ -121,6 +124,10 @@ function initIPC() {
       }
     });
 
+    heartbeat.setBroadcastAction(message => {
+      ipc.server.broadcast("message", message)
+    });
+    heartbeat.startHearbeatInterval(config.moduleName);
   });
 
 }
