@@ -26,6 +26,15 @@ function initPrimus(displayId, machineId) {
   localWS.on("connection", (spk) => {
     spark = spk;
     spark.write("Local Messaging Connection");
+
+    spark.on("data", (data) => {
+      // close any connection that is sending data not from "ws-client"
+      if (!data.from || data.from !== "ws-client") {
+        spark.end();
+      }
+
+      ipc.server.broadcast("message", data);
+    });
   });
 
   localWS.on("destroy", () => {
