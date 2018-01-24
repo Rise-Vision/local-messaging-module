@@ -31,9 +31,16 @@ function initPrimus(displayId, machineId) {
       // close any connection that is sending data not from "ws-client"
       if (!data.from || data.from !== "ws-client") {
         spark.end();
+        return;
       }
 
-      ipc.server.broadcast("message", data);
+      if (data.topic && data.topic === "client-list-request") {
+        const message = {topic: "client-list", installedClients, clients: Array.from(clients)};
+        spark.write(message);
+      } else {
+        ipc.server.broadcast("message", data);
+      }
+
     });
   });
 
