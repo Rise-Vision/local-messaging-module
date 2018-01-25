@@ -9,8 +9,9 @@ const heartbeat = require("common-display-module/heartbeat");
 
 const clients = new Set();
 const port = 8080;
+const wsClients = new Map();
 
-let installedClients, ipc, localWS, ms, spark;
+let installedClients, ipc, localWS, ms;
 
 function destroy() {
   if (localWS) {localWS.destroy();}
@@ -23,29 +24,57 @@ function destroy() {
 function initPrimus(displayId, machineId) {
   localWS = new Primus(server, {transformer: "websockets"});
 
-  localWS.on("connection", (spk) => {
-    spark = spk;
-    spark.write("Local Messaging Connection");
-
-    spark.on("data", (data) => {
+  localWS.on("connection", (spark) => {
+    spark.on("data", (message) => {
       // close any connection that is sending data not from "ws-client"
-      if (!data.from || data.from !== "ws-client") {
+      if (!message.from) {
         spark.end();
         return;
       }
 
-      if (data.topic && data.topic === "client-list-request") {
-        const message = {topic: "client-list", installedClients, clients: Array.from(clients)};
-        spark.write(message);
-      } else {
-        ipc.server.broadcast("message", data);
-      }
+      if (message.topic) {
 
+        if (message.topic === "client-list-request") {
+
+          const clientListMessage = {topic: "client-list", installedClients, clients: Array.from(clients)};
+          spark.write(clientListMessage);
+
+        } else if (message.topic === "connected") {
+          wsClients.set(spark.id, message.data.component_id);
+          clients.add(message.data.component_id);
+
+          const clientListMessage = {topic: "client-list", installedClients, clients: Array.from(clients), status: "connected", client: message.data.component_id};
+
+          ipc.server.broadcast(
+            "message",
+            clientListMessage
+          );
+
+        } else {
+          ipc.server.broadcast("message", message);
+        }
+      }
     });
   });
 
   localWS.on("destroy", () => {
     log.all("localWS instance has been destroyed");
+  });
+
+  localWS.on('disconnection', (spark) => {
+    if (wsClients.has(spark.id)) {
+      const componentId = wsClients.get(spark.id);
+      log.file(`${componentId} has disconnected`);
+
+      clients.delete(componentId);
+
+      const message = {topic: "client-list", installedClients, clients: Array.from(clients), status: "disconnected", client: componentId};
+
+      ipc.server.broadcast(
+        "message",
+        message
+      );
+    }
   });
 
   ms = websocket.createRemoteSocket(displayId, machineId);
@@ -71,8 +100,8 @@ function initIPC() {
     ipc.server.on("message", (data) => {
       // data.through indicates to send data over the socket
       if (data.through === "ws") {
-        if (spark) {
-          spark.write(data);
+        if (localWS) {
+          localWS.write(data);
         } else {
           log.file(`Unable to send data through local WS: ${JSON.stringify(data)}`, "No clients connected to WS");
         }
@@ -101,9 +130,9 @@ function initIPC() {
           "message",
           message
         );
-
-        if (spark) {
-          spark.write(message);
+        // broadcast to all components
+        if (localWS) {
+          localWS.write(message);
         }
       }
     });
@@ -116,10 +145,6 @@ function initIPC() {
         "message",
         message
       );
-
-      if (spark) {
-        spark.write(message);
-      }
     });
 
     ipc.server.on("socket.disconnected", (socket, destroyedSocketID) => {
@@ -128,15 +153,16 @@ function initIPC() {
 
       clients.delete(destroyedSocketID);
 
-      const message = {topic: "client-list", clients: Array.from(clients), status: "disconnected", client: destroyedSocketID};
+      const message = {topic: "client-list", installedClients, clients: Array.from(clients), status: "disconnected", client: destroyedSocketID};
 
       ipc.server.broadcast(
         "message",
         message
       );
 
-      if (spark) {
-        spark.write(message);
+      // broadcast to all components
+      if (localWS) {
+        localWS.write(message);
       }
     });
 
