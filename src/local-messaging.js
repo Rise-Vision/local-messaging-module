@@ -143,7 +143,7 @@ function initIPC() {
     heartbeat.setBroadcastAction(message => {
       ipc.server.broadcast("message", message)
     });
-    heartbeat.startHearbeatInterval(config.moduleName);
+    heartbeat.startHeartbeatInterval(config.moduleName);
   });
 
 }
