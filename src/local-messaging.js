@@ -26,7 +26,7 @@ function initPrimus(displayId, machineId) {
 
   localWS.on("connection", (spark) => {
     spark.on("data", (message) => {
-      // close any connection that is sending data not from "ws-client"
+      // close any connection that is sending data without a from attribute
       if (!message.from) {
         spark.end();
         return;
