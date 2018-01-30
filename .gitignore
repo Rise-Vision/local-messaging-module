@@ -1,4 +1,5 @@
 node_modules/
+primus_node_modules/
 build-temp/
 src/test/test-results.xml
 private-keys/
