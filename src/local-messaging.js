@@ -6,6 +6,7 @@ const commonConfig = require("common-display-module");
 const config = require("./config/config");
 const util = require("util");
 const heartbeat = require("common-display-module/heartbeat");
+const loggerModuleDelay = 5000;
 
 const clients = new Set();
 const port = 8080;
@@ -54,14 +55,17 @@ function initPrimus(displayId, machineId) {
   ms.on("error", (err) => {
     const userFriendlyMessage = "MS socket connection error";
 
-    log.error({
-        "event_details": err ? err.message || util.inspect(err, {depth: 1}) : "",
-        "version": config.getModuleVersion()
-    }, userFriendlyMessage, config.bqTableName);
+    setTimeout(()=>{
+      log.error({
+          "event_details": err ? err.message || util.inspect(err, {depth: 1}) : "",
+          "version": config.getModuleVersion()
+      }, userFriendlyMessage, config.bqTableName);
+    }, loggerModuleDelay);
   });
 
   return new Promise(res=>ms.on("open", ()=>{
     log.file(null, "MS connection opened");
+    setTimeout(()=>log.external("MS connection opened"), loggerModuleDelay);
     res();
   }));
 }
