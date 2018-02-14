@@ -4,17 +4,13 @@ const localMessaging = require("./local-messaging");
 
 let displaySettings = {};
 
-function validateMessage(message, detail) {
+function validateMessage(message) {
   let error = "";
 
   if (!message) {
     error = "Message is required";
   } else if (!message.data.data.event) {
     error = "BQ event is required";
-  } else if (!Object.keys(detail).length) {
-    /* Checks detail separately since its value combined
-    with another object that specifies the event */
-    error = "BQ detail is required";
   }
 
   return error;
@@ -48,7 +44,7 @@ function constructMessage(evt, detail, table, moduleName) {
 module.exports = {
     log(evt, detail, table, moduleName) {
       const message = constructMessage(evt, detail, table, moduleName);
-      const messageError = validateMessage(message, detail);
+      const messageError = validateMessage(message);
 
       if (!messageError) {
         if (localMessaging.isInClientList("logging")) {
