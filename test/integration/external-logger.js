@@ -32,11 +32,6 @@ describe("Logging Events : Integration", ()=>{
       console.log(log.file.lastCall.args[0]);
       assert.deepEqual(log.file.lastCall.args[0], "external-logger error: BQ event is required");
     });
-
-    it("should not send message to LM and log error if message.data.detail is null", ()=>{
-      externalLogger.log("test-event", {});
-      assert.deepEqual(log.file.lastCall.args[0], "external-logger error: BQ detail is required");
-    });
   });
 
    describe("External Logging", ()=>{

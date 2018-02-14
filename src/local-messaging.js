@@ -65,10 +65,7 @@ function initPrimus(displayId, machineId) {
 
   return new Promise(res=>ms.on("open", ()=>{
     log.file(null, "MS connection opened");
-    setTimeout(()=>log.external("MS connection opened", {
-      "event_details": "",
-      "version": config.getModuleVersion()
-    }), loggerModuleDelay);
+    setTimeout(()=>log.external("MS connection opened"), loggerModuleDelay);
     res();
   }));
 }
