@@ -6,7 +6,7 @@ const commonConfig = require("common-display-module");
 const config = require("./config/config");
 const util = require("util");
 const heartbeat = require("common-display-module/heartbeat");
-const loggerModuleDelay = 5000;
+const loggerModuleDelay = 25000;
 
 const clients = new Set();
 const port = 8080;
