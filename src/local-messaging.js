@@ -27,7 +27,7 @@ function initPrimus(displayId, machineId) {
   localWS.on("connection", (spk) => {
     spark = spk;
     spark.write("Local Messaging Connection");
-    log.all("received a connection", JSON.stringify({id: spk.id, query: spk.query, request: spk.request}));
+    log.all("received a connection", JSON.stringify(spk));
 
     spark.on("data", (data) => {
       // close any connection that is sending data not from "ws-client"
@@ -55,7 +55,7 @@ function initPrimus(displayId, machineId) {
   });
 
   localWS.on("disconnection", (spk) => {
-    log.all("received a disconnection", JSON.stringify({id: spk.id, query: spk.query, request: spk.request}));
+    log.all("received a disconnection", JSON.stringify(spk));
   });
 
   localWS.on("destroy", () => {
