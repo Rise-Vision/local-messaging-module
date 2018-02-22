@@ -62,6 +62,10 @@ function initPrimus(displayId, machineId) {
     log.all("localWS instance has been destroyed");
   });
 
+  localWS.on("close", () => {
+    log.all("server connection has closed and been destroyed", JSON.stringify(server));
+  });
+
   ms = websocket.createRemoteSocket(displayId, machineId);
 
   ms.on("data", data=>ipc.server.broadcast("message", data));

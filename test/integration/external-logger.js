@@ -1,6 +1,6 @@
 /* eslint-env mocha */
 
-global.log = global.log || {file: ()=>{}, debug: ()=>{}}; // eslint-disable-line global-require
+global.log = global.log || {file: ()=>{}, debug: ()=>{}, all: ()=>{}}; // eslint-disable-line global-require
 
 const assert = require("assert");
 const simpleMock = require("simple-mock");
