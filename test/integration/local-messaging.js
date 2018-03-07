@@ -1,6 +1,5 @@
 /* eslint-env mocha */
 
-global.log = global.log || {file: console.log}; // eslint-disable-line global-require
 const simple = require("simple-mock");
 const assert = require("assert");
 const commonConfig = require("common-display-module");
@@ -12,6 +11,8 @@ describe("Local Messaging : Integration", ()=>{
   const testManifest = {"test-client": {"version": "2018.01"}, "test-client-2": {"version": "2018.01"}, "test-client-3": {"version": "2018.01"}};
 
   before(()=>{
+    global.log = global.log || {file: console.log, external: console.log};
+    global.log.external = global.log.external || console.log;
     simple.mock(commonConfig, "getMachineId").returnWith("abc");
     simple.mock(commonConfig, "getDisplaySettingsSync").returnWith({displayId: "abc"});
     simple.mock(commonConfig, "getManifest").returnWith(testManifest);
