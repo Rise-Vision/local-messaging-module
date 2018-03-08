@@ -52,6 +52,9 @@ function initPrimus(displayId, machineId) {
   ms = websocket.createRemoteSocket(displayId, machineId);
 
   ms.on("data", data=>ipc.server.broadcast("message", data));
+  ms.on("open", ()=>ipc.server.broadcast("message", {topic: "ms-connected"}));
+  ms.on("close", ()=>ipc.server.broadcast("message", {topic: "ms-disconnected"}));
+  ms.on("end", ()=>ipc.server.broadcast("message", {topic: "ms-disconnected"}));
   ms.on("error", (err) => {
     const userFriendlyMessage = "MS socket connection error";
 
