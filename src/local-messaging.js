@@ -48,7 +48,7 @@ function initPrimus(displayId, machineId) {
   });
 
   localWS.on("destroy", () => {
-    log.all("localWS instance has been destroyed");
+    log.file("localWS instance has been destroyed");
   });
 
   ms = websocket.createRemoteSocket(displayId, machineId);
@@ -75,7 +75,7 @@ function initPrimus(displayId, machineId) {
 function initIPC() {
   ipc.serve(() => {
     ipc.server.on("message", (data) => {
-      if (debugging) {log.all(JSON.stringify(data, null, JSON_SPACING));}
+      if (debugging) {log.file(JSON.stringify(data, null, JSON_SPACING));}
 
       if (data.through === "ws") {
         if (spark) {
