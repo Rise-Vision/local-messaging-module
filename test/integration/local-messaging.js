@@ -35,8 +35,16 @@ describe("Local Messaging : Integration", ()=>{
 
       return new Promise(res=>ms.on("open", res))
       .then(()=>{
-        ms.write({topic: "watch"});
-        return new Promise(res=>ms.on("data", data=>{console.log(data); res();}));
+        ms.write({
+          topic: "watch",
+          version: "0",
+          filePath: "messaging-service-test-bucket/test-folder/test-file.txt"
+        });
+        return new Promise(res=>ms.on("data", data=>{
+          console.log(data);
+          ms.destroy();
+          res();
+        }));
       });
     });
   });

@@ -7,7 +7,7 @@
     "prebuild": "rm -rf node_modules && rm -rf primus_node_modules && rm -rf package-lock.json && npm install primus ws && mv node_modules primus_node_modules && npm install",
     "build": "eslint . && webpack",
     "postbuild": "rimraf build/local-messaging && rimraf build/*.zip",
-    "test": "eslint . && mocha -r test/mocha-env.js -t 20000 --recursive test/**"
+    "test": "eslint . && mocha -r test/mocha-env.js -t 3000 --recursive test/**"
   },
   "repository": {
     "type": "git",
