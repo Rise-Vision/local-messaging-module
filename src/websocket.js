@@ -12,6 +12,7 @@ function createRemoteSocket(displayId, machineId) {
   const msUrl = `${msEndpoint}?displayId=${displayId}&machineId=${machineId}`;
 
   const options = {
+    pingTimeout: 45000,
     reconnect: {
       max: 1800000,
       min: 5000,

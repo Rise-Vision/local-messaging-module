@@ -21,7 +21,7 @@ npm run test
 Run local messaging:
 
 ```bash
-node src/index.js
+NODE_ENV=manual node src/index.js --debug
 ```
 
 In another terminal window, clone and run another module. For example, to
