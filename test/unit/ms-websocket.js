@@ -1,5 +1,3 @@
-/* eslint-env mocha */
-
 const assert = require("assert");
 const common = require("common-display-module");
 const HttpsProxyAgent = require("https-proxy-agent");
