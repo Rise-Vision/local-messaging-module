@@ -6,10 +6,14 @@ const HttpsProxyAgent = require("https-proxy-agent");
 const Primus = require("primus");
 const simple = require("simple-mock");
 
-const websocket = require("../../src/websocket")
+const websocket = require("../../src/websocket");
 
 describe("Websocket : Unit", () =>
 {
+
+  const cachedLog = global.log;
+
+  after(() => global.log = cachedLog);
 
   beforeEach(() => {
     const mockSettings = {displayId: "abc"};
@@ -46,7 +50,7 @@ describe("Websocket : Unit", () =>
       });
 
       assert(!socketCreationOptions.transport);
-    })
+    });
 
     it("should create regular websocket when empty HTTPS_PROXY variable is defined", () => {
       simple.mock(process.env, 'HTTPS_PROXY', '');
@@ -62,10 +66,9 @@ describe("Websocket : Unit", () =>
       });
 
       assert(!socketCreationOptions.transport);
-    })
+    });
 
-    it("should create websocket considering HTTPS_PROXY variable", () =>
-    {
+    it("should create websocket considering HTTPS_PROXY variable", () => {
       simple.mock(process.env, 'HTTPS_PROXY', 'http://localhost:9191');
 
       websocket.createRemoteSocket();
@@ -81,8 +84,55 @@ describe("Websocket : Unit", () =>
       assert(socketCreationOptions.transport);
       assert(socketCreationOptions.transport.agent);
       assert(socketCreationOptions.transport.agent instanceof HttpsProxyAgent);
-    })
+    });
 
+  });
+
+  describe("configure", () => {
+    beforeEach(() => {
+      global.log = {
+        file: simple.stub(),
+        all: simple.stub(),
+        external: simple.stub()
+      };
+    });
+
+    it("should log a warning if there is an MS connection error", () => {
+
+      const ms = {
+        on: (event, action) => {
+          switch (event) {
+            case 'error': return action({message: 'connection error'});
+            case 'open': return action();
+            default:
+          }
+        }
+      };
+
+      const ipc = {server: {broadcast: simple.stub()}};
+
+      return websocket.configure(ms, ipc, action => action())
+      .then(() => {
+        assert.equal(ipc.server.broadcast.callCount, 1);
+        assert.equal(ipc.server.broadcast.lastCall.args[0], 'message');
+        assert.deepEqual(ipc.server.broadcast.lastCall.args[1], {
+          topic: "ms-connected"
+        });
+
+        assert.equal(global.log.file.callCount, 1);
+        assert.equal(global.log.file.lastCall.args[1], 'MS connection opened');
+
+        assert.equal(global.log.external.callCount, 1);
+        assert.equal(global.log.external.lastCall.args[0], 'MS connection opened');
+
+        assert.equal(global.log.all.callCount, 1);
+        assert.equal(global.log.all.lastCall.args[0], 'warning');
+        assert.deepEqual(global.log.all.lastCall.args[1], {
+          "event_details": "MS socket connection error, Primus will attempt reconnection: connection error"
+        });
+
+      });
+    });
   });
 
 });

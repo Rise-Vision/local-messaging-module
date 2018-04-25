@@ -35,13 +35,13 @@ function createRemoteSocket(displayId, machineId) {
   }))(msUrl, options);
 }
 
-function configure(ms, ipc) {
+function configure(ms, ipc, schedule = setTimeout) {
   ms.on("data", data=>ipc.server.broadcast("message", data));
   ms.on("open", ()=>ipc.server.broadcast("message", {topic: "ms-connected"}));
   ms.on("close", ()=>ipc.server.broadcast("message", {topic: "ms-disconnected"}));
   ms.on("end", ()=>ipc.server.broadcast("message", {topic: "ms-disconnected"}));
   ms.on("error", (err) => {
-    setTimeout(()=>{
+    schedule(()=>{
       const details = `MS socket connection error, Primus will attempt reconnection: ${
         err ? err.message || util.inspect(err, {depth: 1}) : ""
       }`
@@ -52,7 +52,7 @@ function configure(ms, ipc) {
 
   return new Promise(res=>ms.on("open", ()=>{
     log.file(null, "MS connection opened");
-    setTimeout(()=>log.external("MS connection opened"), loggerModuleDelay);
+    schedule(()=>log.external("MS connection opened"), loggerModuleDelay);
     res();
   }));
 }
