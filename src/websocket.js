@@ -35,11 +35,15 @@ function createRemoteSocket(displayId, machineId) {
   }))(msUrl, options);
 }
 
+function broadcastMessage(ipc, topic) {
+  ipc.server.broadcast("message", {topic});
+}
+
 function configure(ms, ipc, schedule = setTimeout) {
-  ms.on("data", data=>ipc.server.broadcast("message", data));
-  ms.on("open", ()=>ipc.server.broadcast("message", {topic: "ms-connected"}));
-  ms.on("close", ()=>ipc.server.broadcast("message", {topic: "ms-disconnected"}));
-  ms.on("end", ()=>ipc.server.broadcast("message", {topic: "ms-disconnected"}));
+  ms.on("data", data => ipc.server.broadcast("message", data));
+  ms.on("open", () => broadcastMessage(ipc, "ms-connected"));
+  ms.on("close", () => broadcastMessage(ipc, "ms-disconnected"));
+  ms.on("end", () => broadcastMessage(ipc, "ms-disconnected"));
   ms.on("error", (err) => {
     schedule(()=>{
       const details = `MS socket connection error, Primus will attempt reconnection: ${
