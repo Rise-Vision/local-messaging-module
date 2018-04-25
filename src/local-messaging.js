@@ -1,7 +1,7 @@
 const Primus = require("primus");
 const http = require("http");
 const server = http.createServer(()=>{});
-const websocket = require("./websocket");
+const msWebsocket = require("./ms-websocket");
 const commonConfig = require("common-display-module");
 const config = require("./config/config");
 const util = require("util");
@@ -48,9 +48,9 @@ function initPrimus(displayId, machineId) {
     log.all("localWS instance has been destroyed");
   });
 
-  ms = websocket.createRemoteSocket(displayId, machineId);
+  ms = msWebsocket.createRemoteSocket(displayId, machineId);
 
-  return websocket.configure(ms, ipc);
+  return msWebsocket.configure(ms, ipc);
 }
 
 function initIPC() {

@@ -1,6 +1,3 @@
-// Creates the remote websocket using Primus.
-// This was separated to facilitate testing.
-
 const Primus = require("primus");
 
 const commonConfig = require("common-display-module");

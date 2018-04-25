@@ -6,9 +6,9 @@ const HttpsProxyAgent = require("https-proxy-agent");
 const Primus = require("primus");
 const simple = require("simple-mock");
 
-const websocket = require("../../src/websocket");
+const msWebsocket = require("../../src/ms-websocket");
 
-describe("Websocket : Unit", () =>
+describe("MS Websocket : Unit", () =>
 {
 
   const cachedLog = global.log;
@@ -39,7 +39,7 @@ describe("Websocket : Unit", () =>
     afterEach(() => socketCreationOptions = null);
 
     it("should create regular websocket when no proxy environment is defined", () => {
-      websocket.createRemoteSocket();
+      msWebsocket.createRemoteSocket();
 
       assert(socketCreationOptions);
 
@@ -55,7 +55,7 @@ describe("Websocket : Unit", () =>
     it("should create regular websocket when empty HTTPS_PROXY variable is defined", () => {
       simple.mock(process.env, 'HTTPS_PROXY', '');
 
-      websocket.createRemoteSocket();
+      msWebsocket.createRemoteSocket();
 
       assert(socketCreationOptions);
 
@@ -71,7 +71,7 @@ describe("Websocket : Unit", () =>
     it("should create websocket considering HTTPS_PROXY variable", () => {
       simple.mock(process.env, 'HTTPS_PROXY', 'http://localhost:9191');
 
-      websocket.createRemoteSocket();
+      msWebsocket.createRemoteSocket();
 
       assert(socketCreationOptions);
 
@@ -111,7 +111,7 @@ describe("Websocket : Unit", () =>
 
       const ipc = {server: {broadcast: simple.stub()}};
 
-      return websocket.configure(ms, ipc, action => action())
+      return msWebsocket.configure(ms, ipc, action => action())
       .then(() => {
         assert.equal(ipc.server.broadcast.callCount, 1);
         assert.equal(ipc.server.broadcast.lastCall.args[0], 'message');
