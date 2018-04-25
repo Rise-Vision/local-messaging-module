@@ -1,12 +1,11 @@
 const Primus = require("primus");
 const http = require("http");
 const server = http.createServer(()=>{});
-const websocket = require("./websocket");
+const msWebsocket = require("./ms-websocket");
 const commonConfig = require("common-display-module");
 const config = require("./config/config");
 const util = require("util");
 const heartbeat = require("common-display-module/heartbeat");
-const loggerModuleDelay = 25000;
 
 const clients = new Set();
 const port = 8080;
@@ -49,28 +48,9 @@ function initPrimus(displayId, machineId) {
     log.all("localWS instance has been destroyed");
   });
 
-  ms = websocket.createRemoteSocket(displayId, machineId);
+  ms = msWebsocket.createRemoteSocket(displayId, machineId);
 
-  ms.on("data", data=>ipc.server.broadcast("message", data));
-  ms.on("open", ()=>ipc.server.broadcast("message", {topic: "ms-connected"}));
-  ms.on("close", ()=>ipc.server.broadcast("message", {topic: "ms-disconnected"}));
-  ms.on("end", ()=>ipc.server.broadcast("message", {topic: "ms-disconnected"}));
-  ms.on("error", (err) => {
-    const userFriendlyMessage = "MS socket connection error";
-
-    setTimeout(()=>{
-      log.error({
-          "event_details": err ? err.message || util.inspect(err, {depth: 1}) : "",
-          "version": config.getModuleVersion()
-      }, userFriendlyMessage, config.bqTableName);
-    }, loggerModuleDelay);
-  });
-
-  return new Promise(res=>ms.on("open", ()=>{
-    log.file(null, "MS connection opened");
-    setTimeout(()=>log.external("MS connection opened"), loggerModuleDelay);
-    res();
-  }));
+  return msWebsocket.configure(ms, ipc);
 }
 
 function initIPC() {
