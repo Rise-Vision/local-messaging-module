@@ -4,7 +4,10 @@
 const Primus = require("primus");
 
 const commonConfig = require("common-display-module");
+
+const loggerModuleDelay = 25000;
 const msEndpoint = `https://services.risevision.com/messaging/primus/`;
+const util = require("util");
 
 function createRemoteSocket(displayId, machineId) {
   displayId = displayId || commonConfig.getDisplaySettingsSync().displayid;
@@ -32,4 +35,26 @@ function createRemoteSocket(displayId, machineId) {
   }))(msUrl, options);
 }
 
-module.exports = {createRemoteSocket}
+function configure(ms, ipc) {
+  ms.on("data", data=>ipc.server.broadcast("message", data));
+  ms.on("open", ()=>ipc.server.broadcast("message", {topic: "ms-connected"}));
+  ms.on("close", ()=>ipc.server.broadcast("message", {topic: "ms-disconnected"}));
+  ms.on("end", ()=>ipc.server.broadcast("message", {topic: "ms-disconnected"}));
+  ms.on("error", (err) => {
+    setTimeout(()=>{
+      const details = `MS socket connection error, Primus will attempt reconnection: ${
+        err ? err.message || util.inspect(err, {depth: 1}) : ""
+      }`
+
+      log.all("warning", {"event_details": details});
+    }, loggerModuleDelay);
+  });
+
+  return new Promise(res=>ms.on("open", ()=>{
+    log.file(null, "MS connection opened");
+    setTimeout(()=>log.external("MS connection opened"), loggerModuleDelay);
+    res();
+  }));
+}
+
+module.exports = {createRemoteSocket, configure}
