@@ -42,7 +42,7 @@ function configure(ms, ipc, schedule = setTimeout) {
   ms.on("close", () => broadcastMessage(ipc, "ms-disconnected"));
   ms.on("end", () => broadcastMessage(ipc, "ms-disconnected"));
   ms.on("error", (err) => {
-    schedule(()=>{
+    schedule(() => {
       const details = `MS socket connection error, Primus will attempt reconnection: ${
         err ? err.message || util.inspect(err, {depth: 1}) : ""
       }`
@@ -51,9 +51,9 @@ function configure(ms, ipc, schedule = setTimeout) {
     }, loggerModuleDelay);
   });
 
-  return new Promise(res=>ms.on("open", ()=>{
+  return new Promise(res => ms.on("open", () => {
     log.file(null, "MS connection opened");
-    schedule(()=>log.external("MS connection opened"), loggerModuleDelay);
+    schedule(() => log.external("MS connection opened"), loggerModuleDelay);
     res();
   }));
 }
