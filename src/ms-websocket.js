@@ -17,7 +17,7 @@ function createRemoteSocket(displayId, machineId) {
   const options = {
     pingTimeout: 45000,
     reconnect: {
-      max: 1800000,
+      max: 600000,
       min: 5000,
       retries: Infinity
     }
