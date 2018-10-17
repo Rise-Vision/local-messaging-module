@@ -6,6 +6,7 @@ const commonConfig = require("common-display-module");
 const config = require("./config/config");
 const util = require("util");
 const heartbeat = require("common-display-module/heartbeat");
+const PRIMUSOPEN = require("primus/spark.js").OPEN;
 
 const clients = new Set();
 const port = 8080;
@@ -107,6 +108,14 @@ function initIPC() {
       if (spark) {
         spark.write(message);
       }
+    });
+
+    ipc.server.on("ms-connectivity-request", (data, socket)=>{
+      const msConnectionState = ms.readyState === PRIMUSOPEN ?
+        "connected" :
+        "disconnected";
+
+      ipc.server.emit(socket, "ms-connection-state", msConnectionState);
     });
 
     ipc.server.on("socket.disconnected", (socket, destroyedSocketID) => {
