@@ -7,6 +7,7 @@ const config = require("./config/config");
 const util = require("util");
 const heartbeat = require("common-display-module/heartbeat");
 const PRIMUSOPEN = require("primus/spark.js").OPEN;
+const loggerModuleDelay = 3000;
 
 const clients = new Set();
 const port = 8080;
@@ -149,12 +150,15 @@ function start() {
     log.file(null, "HTTP server is listening on port 8080");
   });
 
-  server.on("error", (err) => {
-    const userFriendlyMessage = "Unable to start HTTP server running on port 8080";
-    log.file(err ? err.stack || util.inspect(err, {depth: 1}) : "", userFriendlyMessage);
-  });
+  server.on("error", err => logWithDelay(err, "Unable to start HTTP server running on port 8080"));
 
   ipc.server.start();
+}
+
+function logWithDelay(err, userFriendlyMessage, schedule = setTimeout) {
+  schedule(() => {
+    log.all("error", err ? err.stack || util.inspect(err, {depth: 1}) : "", userFriendlyMessage);
+  }, loggerModuleDelay);
 }
 
 function configureInstalledList() {
