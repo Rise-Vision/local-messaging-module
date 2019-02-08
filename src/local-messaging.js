@@ -151,7 +151,7 @@ function start() {
 
   server.on("error", (err) => {
     const userFriendlyMessage = "Unable to start HTTP server running on port 8080";
-    log.file(err ? err.stack || util.inspect(err, {depth: 1}) : "", userFriendlyMessage);
+    log.error(err ? err.stack || util.inspect(err, {depth: 1}) : "", userFriendlyMessage);
   });
 
   ipc.server.start();
