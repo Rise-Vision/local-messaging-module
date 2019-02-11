@@ -50,7 +50,7 @@ module.exports = {
         if (localMessaging.isInClientList("logging")) {
           ipc.server.broadcast("message", message);
         } else {
-          log.debug(`logging module not connected, could not log:\n${JSON.stringify(message)}`);
+          log.file(`logging module not connected, could not log:\n${JSON.stringify(message)}`);
         }
       } else {
         log.file(`external-logger error: ${messageError}`, "Invalid external log");
