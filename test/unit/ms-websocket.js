@@ -15,7 +15,7 @@ describe("MS Websocket : Unit", () =>
   after(() => global.log = cachedLog);
 
   beforeEach(() => {
-    const mockSettings = {displayId: "abc"};
+    const mockSettings = {displayid: "id"};
 
     simple.mock(fs, "watch").callbackWith();
     simple.mock(common, "getMachineId").returnWith("abc");
@@ -25,12 +25,14 @@ describe("MS Websocket : Unit", () =>
   afterEach(() => simple.restore());
 
   describe("createRemoteSocket", () => {
-    let socketCreationOptions = null
+    let socketCreationOptions = null;
+    let socketUrl = null;
 
     beforeEach(() => {
       simple.mock(Primus, "createSocket").callFn(() =>
       {
         return function(url, options) {
+          socketUrl = url;
           socketCreationOptions = options;
         }
       });
@@ -44,12 +46,33 @@ describe("MS Websocket : Unit", () =>
       assert(socketCreationOptions);
 
       assert.deepEqual(socketCreationOptions.reconnect, {
-        max: 1800000,
+        max: 600000,
         min: 5000,
         retries: Infinity
       });
 
       assert(!socketCreationOptions.transport);
+
+      assert.equal(socketUrl, "https://services.risevision.com/messaging/primus/?displayId=id&machineId=abc");
+    });
+
+
+    it("should create regular websocket for stage environment", () => {
+      simple.mock(common, "isStageEnvironment").returnWith(true);
+
+      msWebsocket.createRemoteSocket();
+
+      assert(socketCreationOptions);
+
+      assert.deepEqual(socketCreationOptions.reconnect, {
+        max: 600000,
+        min: 5000,
+        retries: Infinity
+      });
+
+      assert(!socketCreationOptions.transport);
+
+      assert.equal(socketUrl, "https://services-stage.risevision.com/messaging/primus/?displayId=id&machineId=abc");
     });
 
     it("should create regular websocket when empty HTTPS_PROXY variable is defined", () => {
@@ -60,7 +83,7 @@ describe("MS Websocket : Unit", () =>
       assert(socketCreationOptions);
 
       assert.deepEqual(socketCreationOptions.reconnect, {
-        max: 1800000,
+        max: 600000,
         min: 5000,
         retries: Infinity
       });
@@ -76,7 +99,7 @@ describe("MS Websocket : Unit", () =>
       assert(socketCreationOptions);
 
       assert.deepEqual(socketCreationOptions.reconnect, {
-        max: 1800000,
+        max: 600000,
         min: 5000,
         retries: Infinity
       });
@@ -132,7 +155,7 @@ describe("MS Websocket : Unit", () =>
       });
     });
 
-    it.only("should log additional events if debug flag is set", () => {
+    it("should log additional events if debug flag is set", () => {
       simple.restore(common, "getDisplaySettingsSync");
       simple.mock(common, "getDisplaySettingsSync").returnWith({debug: "true"});
       const ms = {

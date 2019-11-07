@@ -42,7 +42,7 @@ describe("Logging Events : Integration", ()=>{
     });
 
     beforeEach(()=>{
-      mock(log, "debug");
+      mock(log, "file");
     });
 
     after(()=>{
@@ -120,7 +120,7 @@ describe("Logging Events : Integration", ()=>{
             'connect',
             () => {
               externalLogger.log("testEvent", {"event_details": "test-details"}, "testTable", "testFrom")
-              assert.deepEqual(log.debug.lastCall.args[0], expectedErrorLog);
+              assert.deepEqual(log.file.lastCall.args[0], expectedErrorLog);
               done();
             }
           )
