@@ -4,6 +4,8 @@ global.log = global.log || {file: ()=>{}, debug: ()=>{}}; // eslint-disable-line
 
 const assert = require("assert");
 const simpleMock = require("simple-mock");
+const fs = require('fs-extra')
+const commonConfig = require("common-display-module");
 const mock = simpleMock.mock;
 const externalLogger = require('../../src/external-logger');
 const localMessaging = require("../../src/local-messaging.js");
@@ -29,7 +31,6 @@ describe("Logging Events : Integration", ()=>{
 
     it("should not send message to LM and log error if message.data.event is null", ()=>{
       externalLogger.log("", {"detail": "testDetail"});
-      console.log(log.file.lastCall.args[0]);
       assert.deepEqual(log.file.lastCall.args[0], "external-logger error: BQ event is required");
     });
   });
@@ -38,11 +39,13 @@ describe("Logging Events : Integration", ()=>{
     before(()=>{
       ipc.config.id = "lms";
       ipc.config.retry = 1500;
+
+      fs.ensureFileSync(commonConfig.getDisplaySettingsFileName());
       localMessaging.init(ipc, "lmn-test", "lmn-test");
     });
 
     beforeEach(()=>{
-      mock(log, "debug");
+      mock(log, "file");
     });
 
     after(()=>{
@@ -120,7 +123,7 @@ describe("Logging Events : Integration", ()=>{
             'connect',
             () => {
               externalLogger.log("testEvent", {"event_details": "test-details"}, "testTable", "testFrom")
-              assert.deepEqual(log.debug.lastCall.args[0], expectedErrorLog);
+              assert.deepEqual(log.file.lastCall.args[0], expectedErrorLog);
               done();
             }
           )

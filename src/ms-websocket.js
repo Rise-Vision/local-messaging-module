@@ -3,7 +3,8 @@ const Primus = require("primus");
 const commonConfig = require("common-display-module");
 
 const loggerModuleDelay = 25000;
-const msEndpoint = `https://services.risevision.com/messaging/primus/`;
+const msEndpoint = "https://services.risevision.com/messaging/primus/";
+const msStageEndpoint = "https://services-stage.risevision.com/messaging/primus/";
 const util = require("util");
 const fs = require("fs");
 
@@ -12,7 +13,10 @@ let debugFlagSet = false;
 function createRemoteSocket(displayId, machineId) {
   displayId = displayId || commonConfig.getDisplaySettingsSync().displayid;
   machineId = machineId || commonConfig.getMachineId();
-  const msUrl = `${msEndpoint}?displayId=${displayId}&machineId=${machineId}`;
+
+  const endpoint = commonConfig.isStageEnvironment() ? msStageEndpoint : msEndpoint;
+
+  const msUrl = `${endpoint}?displayId=${displayId}&machineId=${machineId}`;
 
   const options = {
     pingTimeout: 45000,
