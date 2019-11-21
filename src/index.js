@@ -20,6 +20,8 @@ function dump(err) {
 
 global.log = require("rise-common-electron").logger(preventBQLog ? null : externalLogger, modulePath, config.moduleName);
 
+process.on("SIGPIPE", () => log.external("SIGPIPE received"));
+
 ipc.config.id = "lms";
 ipc.config.retry = 1500;
 
