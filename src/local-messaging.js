@@ -1,3 +1,5 @@
+const debugging = process.argv.slice(1).join(" ").indexOf("debug") > -1;
+const JSON_SPACING = 2;
 const Primus = require("primus");
 const http = require("http");
 const server = http.createServer(()=>{});
@@ -47,7 +49,7 @@ function initPrimus(displayId, machineId) {
   });
 
   localWS.on("destroy", () => {
-    log.all("localWS instance has been destroyed");
+    log.file("localWS instance has been destroyed");
   });
 
   ms = msWebsocket.createRemoteSocket(displayId, machineId);
@@ -58,7 +60,8 @@ function initPrimus(displayId, machineId) {
 function initIPC() {
   ipc.serve(() => {
     ipc.server.on("message", (data) => {
-      // data.through indicates to send data over the socket
+      if (debugging) {log.file(JSON.stringify(data, null, JSON_SPACING));}
+
       if (data.through === "ws") {
         if (spark) {
           spark.write(data);
